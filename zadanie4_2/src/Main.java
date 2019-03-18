@@ -2,7 +2,6 @@
 import java.util.Random;
 import java.io.*;
 import java.nio.file.*;
-//import java.util.concurrent.TimeUnit;
 class Fileop{
     public void Create(String name){
         File f = new File(name);
@@ -19,8 +18,8 @@ class Fileop{
             while ((line = reader.readLine()) != null) {
                 System.out.println(line);
             }
-        } catch (IOException x) {
-            System.err.format("IOException: %s%n", x);
+        } catch (Exception e) {
+            System.out.println(e.getStackTrace());
         }
     }
     public void Writen(String in){
@@ -28,8 +27,8 @@ class Fileop{
         Path p1 = Paths.get("nio.txt");
         try (BufferedWriter writer = Files.newBufferedWriter(p1)) {
             writer.write(in, 0,in.length());
-        } catch (IOException x) {
-            System.err.format("IOException: %s%n", x);
+        } catch (Exception e) {
+            System.out.println(e.getStackTrace());
         }
     }
     public void Read(){
@@ -41,7 +40,8 @@ class Fileop{
                 System.out.println(line);
             }
             buffer.close();
-        }catch(Exception e){
+        }catch (Exception e) {
+            System.out.println(e.getStackTrace());
         }
     }
     public void Write(String in){
@@ -52,27 +52,23 @@ class Fileop{
             out = new FileOutputStream(f);
             PrintStream file = new PrintStream(out);
             file.print(in);
+            if(out != null)out.close();
+            if(file!= null)file.close();
         } catch (Exception e) {
             e.printStackTrace();
-        } finally{
-            //if(out != null)out.close();
-            //if(file!= null)file.close();
         }
     }
 }
 
 public class Main {
     public static void main(String[] args) {
-
-
-        int leftLimit = 97; // letter 'a'
-        int rightLimit = 122; // letter 'z'
+        int leftLimit = 97; // litera 'a'
+        int rightLimit = 122; // litera 'z'
         int targetStringLength = 1000;
         Random random = new Random();
         StringBuilder buffer = new StringBuilder(targetStringLength);
         for (int i = 0; i < targetStringLength; i++) {
-            int randomLimitedInt = leftLimit + (int)
-                    (random.nextFloat() * (rightLimit - leftLimit + 1));
+            int randomLimitedInt = leftLimit + (int)(random.nextFloat() * (rightLimit - leftLimit + 1));
             buffer.append((char) randomLimitedInt);
         }
         String generatedString = buffer.toString();
@@ -94,6 +90,7 @@ public class Main {
         timeElapsed = endTime - startTime;
         System.out.println("Execution time in nanoseconds  : " + timeElapsed);
         System.out.println("Execution time in milliseconds : " + timeElapsed / 1000000);
+
 
     }
 }
