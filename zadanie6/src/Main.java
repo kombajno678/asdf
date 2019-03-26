@@ -1,4 +1,19 @@
 
+<<<<<<< HEAD
+
+class NrTelefoniczny{
+    String nrkierunkowy = null;
+    String nrTelefonu = null;
+    public void setNrkierunkowy(String in){
+        if(in.matches("[0-9]{9}")){
+            nrkierunkowy = in;
+        }
+    }
+    public void setNrTelefonu(String in){
+        if(in.matches("[0-9]{9}")){
+            nrTelefonu = in;
+        }
+=======
 import java.util.Comparator;
 import java.util.Arrays;
 
@@ -50,12 +65,15 @@ class Firma extends Wpis{
     NrTelefoniczny telefon = new NrTelefoniczny();
     public void opis(){
 
+>>>>>>> 03fff6819d78b4c45fc6f2e2b04ea1ef92b03ce9
     }
 }
 public class Main {
 
     public static void main(String[] args) {
         System.out.println("Hello World!");
+<<<<<<< HEAD
+=======
         NrTelefoniczny[] a = new NrTelefoniczny[4];
         a[0] = new NrTelefoniczny("0", "123");
         a[1] = new NrTelefoniczny("0", "321");
@@ -72,5 +90,6 @@ public class Main {
         for(int i = 0; i < 4; i++){
             System.out.println(a[i].ToString());
         }
+>>>>>>> 03fff6819d78b4c45fc6f2e2b04ea1ef92b03ce9
     }
 }
