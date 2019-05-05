@@ -5,6 +5,9 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class zad8_client {
+    Boolean validateDateString(String date){
+        return false;
+    }
     public static void main(String[] args) throws Exception {
         String ip="", msg="", datetime = "";
         final int port = 55555;
