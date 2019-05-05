@@ -33,16 +33,16 @@ public class zad6 {
         return vec;
     }
     public static void main(String[] args){
-        Boolean flag = false;
+        Boolean vectorsCorrectFlag = false;
         do {
-            System.out.println("input two vector of equal length: ");
+            System.out.println("Wprowadz dwa wektory rownej dlugosci: ");
             Vector<Integer> vec1 = getNewVector();
             Vector<Integer> vec2 = getNewVector();
             try {
                 if (vec1.size() != vec2.size()) {
                     throw new WektoryRoznejDlugosciException("Dlugosc pierwszego wektora to "+vec1.size()+" a drugiego to "+vec2.size());
                 } else {
-                    flag = true;
+                    vectorsCorrectFlag = true;
                     //calculate sum
                     Vector<Integer> sum = new Vector(vec1.size());
                     for (int i = 0; i < sum.capacity(); i++) {
@@ -70,11 +70,11 @@ public class zad6 {
                         e.printStackTrace();
                         break;
                     }
-                    System.out.println("sum saved to file: " + path);
+                    System.out.println("Suma wektorow zapisana do pliku: " + path);
                 }
             } catch (WektoryRoznejDlugosciException e) {
                 System.out.println(e.getMessage());
             }
-        }while(flag == false);
+        }while(vectorsCorrectFlag == false);
     }
 }
