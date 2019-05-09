@@ -6,6 +6,41 @@ import java.text.ParseException;
 import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.*;
+class NotificationSenderClass implements Runnable {
+    private Thread t;
+    private String threadName;
+    Socket client;
+    Notification n;
+    NotificationSenderClass( String name) {
+        threadName = name;
+    }
+
+    public void run() {
+        System.out.println(client.getPort() + "> Running " +  threadName );
+        long waitTimeSeconds = (n.date.getTimeInMillis() - Calendar.getInstance().getTimeInMillis())/1000;
+        try {
+            var out = new PrintWriter(client.getOutputStream(), true);
+            Thread.sleep(waitTimeSeconds*1000);
+            out.println("*beep* *boop*, notification:"+n.text);
+            System.out.println(client.getPort() + "> notification text sent");
+
+        } catch (Exception e) {
+            System.out.println(client.getPort() + "> Thread " +  threadName + " " + e.getMessage());
+        }
+        System.out.println(client.getPort() + "> Thread " +  threadName + " exiting.");
+    }
+
+    public void start (Socket s, Notification n) {
+        client = s;
+        this.n = n;
+        //sleepTime = sleep;
+        System.out.println(client.getPort() + ">Starting " +  threadName );
+        if (t == null) {
+            t = new Thread (this, threadName);
+            t.start ();
+        }
+    }
+}
 class Notification{
     Calendar date = Calendar.getInstance();
     String text;
@@ -43,42 +78,61 @@ public class zad8_server {
         @Override
         public void run(){
             System.out.println(socket.getPort() +"> connected: " + socket);
-            try{
+            try {
                 var in = new Scanner(socket.getInputStream());
                 var out = new PrintWriter(socket.getOutputStream(), true);
-                //out.println("you are now connected to server");
-
-                String text = "", date = "";
-                //get text
-                if(in.hasNextLine()){
-                    text = in.nextLine();
+                Boolean loopFlag = true;
+                //out.println("You are now connected to server");
+                int notificationCounter = 1;
+                while(loopFlag){//main loop
+                    System.out.println(socket.getPort() + "> creates new notification...");
+                    String text = "", date = "";
+                    Notification n = null;
+                    try {//get text
+                        if (in.hasNextLine()) {
+                            text = in.nextLine();
+                        }
+                        //get date
+                        if (in.hasNextLine()) {
+                            date = in.nextLine();
+                        }
+                        //create notification
+                        n = new Notification(date, text);
+                    }catch(Exception e){
+                        System.out.println(socket.getPort() + "> client disconnected: ");
+                        break;
+                    }
+                    System.out.println(socket.getPort() + "> notification created: " + n);
+                    NotificationSenderClass notificationSender = new NotificationSenderClass("not#"+notificationCounter);
+                    notificationCounter += 1;
+                    notificationSender.start(socket, n);
+                    System.out.println(socket.getPort() + "> waiting...");
+                    while (true) {
+                        try {
+                            String temp = in.nextLine();
+                            if (temp.matches("!new")) {
+                                break;
+                            }
+                            if (temp.matches("!exit")) {
+                                out.println("!exit");//closing server listener on clients side
+                                //loopFlag = false;
+                                break;
+                            }
+                        }catch(Exception e){
+                            System.out.println(socket.getPort() + "> client disconnected ");
+                            //loopFlag = false;
+                            break;
+                        }
+                    }
                 }
-                //get date
-                if(in.hasNextLine()){
-                    date = in.nextLine();
-                }
-                //create notification
-                Notification n = new Notification(date, text);
-                System.out.println(socket.getPort() + "> notification created: " + n);
-
-                //wait till datetime from notification
-                long waitTimeSeconds = (n.date.getTimeInMillis() - Calendar.getInstance().getTimeInMillis())/1000;
-                System.out.println(socket.getPort() + "> going to sleep for "+waitTimeSeconds+"s");
-                Thread.sleep(waitTimeSeconds*1000);
-
-                //send text from notification
-                out.println(n.text);
-                System.out.println(socket.getPort() + "> notification text sent");
-
-                //close
             }catch(Exception e){
                 System.out.println(socket.getPort() +"> error " + socket);
                 System.out.println(socket.getPort() +"> "+e.getMessage());
+                e.printStackTrace();
             } finally{
                 try{
                     socket.close();
                 }catch(IOException e){
-                    //caught
                     System.out.println(socket.getPort() +"> "+e.getMessage());
                 }finally{
                     System.out.println(socket.getPort() +"> closed");
