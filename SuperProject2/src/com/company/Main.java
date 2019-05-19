@@ -3,6 +3,7 @@ package com.company;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -20,46 +21,95 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.io.FileOutputStream;
 
-
 public class Main extends Application {
-
     Stage window;
     Button button;
-
+    Label label;
     public static void main(String[] args) {
-
-        //launch(args);
-        try{
-            ServerSocket listener = new ServerSocket(55555);
-            ExecutorService pool = Executors.newFixedThreadPool(100);
-            System.out.println("server is running ...");
-            while(true){
-                try {
-                    pool.execute(new Connection(listener.accept()));
-                }catch(IOException e){
-                    System.out.println("Failed to add new client connection");
-                }
-            }
-        }catch(Exception e){
-            System.out.println("Failed to create server socket " + e.getMessage());
-            return;
-        }
-
+        launch(args);
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+
+        Server server = new Server(55555, 100, label);
+
         window = primaryStage;
-        window.setTitle("thenewboston - JavaFX");
-        button = new Button("Click me");
+        window.setTitle("Super Project - Server");
+        button = new Button("Launch server");
+        button.setOnAction(e->{
+
+            server.start();
+        });
+        window.setOnCloseRequest(e->{
+            //
+            System.out.println("exit main");
+            server.stop();
+        });
+        //label = new Label("temp text");
+
 
         StackPane layout = new StackPane();
-        layout.getChildren().add(button);
+        layout.getChildren().addAll(button);
         Scene scene = new Scene(layout, 300, 250);
-
         window.setScene(scene);
         window.show();
+
+
+
     }
+}
+class Server implements Runnable{
+    Thread t;
+    int port, nThreads;
+    Label label;
+    public boolean flag = true;
+    Server(int ports, int nThreads, Label label){
+        this.port = ports;
+        this.nThreads = nThreads;
+        this.label = label;
+    }
+    @Override
+    public void run(){
+        ExecutorService pool = null;
+        ServerSocket listener = null;
+        int tries = 10;
+        while(tries > 0){
+            tries -= 1;
+            try{
+                listener = new ServerSocket(port);
+                pool = Executors.newFixedThreadPool(nThreads);
+                break;
+            }catch(Exception e){
+                System.out.println("Failed to create server socket " + e.getMessage() + "\nTrying again in 10s ...\n");
+                try{
+                    Thread.sleep(10000);
+                }catch(InterruptedException ee){
+
+                }
+            }
+        }
+        if(tries <= 0)return;
+        System.out.println("Server is running.");
+        while(flag){
+            try {
+                pool.execute(new Connection(listener.accept()));
+            }catch(IOException e){
+                System.out.println("Failed to add new client connection");
+            }
+        }
+        System.out.println("Server thread end");
+    }
+    public void start(){
+        if (t == null) {
+            t = new Thread (this);
+            t.start ();
+        }
+    }
+    public void stop(){
+        flag = false;
+    }
+
 }
 class Connection implements Runnable{
     private Socket socket;
@@ -97,7 +147,7 @@ class Connection implements Runnable{
                         String filename = a[1];
                         int fileSize = Integer.parseInt(a[2]);
                         System.out.println("recieving file : " + filename);
-                        String folder = "received\\";
+                        String folder = "server\\";
                         FileReceiverClass fileReceiver = new FileReceiverClass(socket, folder+filename, fileSize);
                         System.out.println(socket.getPort() + ">waiting fpr file transfer");
                         fileReceiver.start();

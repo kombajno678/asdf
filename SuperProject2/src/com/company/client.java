@@ -5,6 +5,7 @@ package com.company;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -22,13 +23,83 @@ import java.io.FileInputStream;
 
 
 
-public class client {
-    final static String username = "adamko";
-    final static String localFolder = "local\\"+username;
-    public static String ip = "";
-    final static int port = 55555;
+import javafx.scene.layout.VBox;
+import javafx.geometry.Insets;
+import javafx.scene.control.TextField;
+
+public class client extends Application{
+    Stage window;
+    Button button;
+    Label label;
+    String ip = "127.0.0.1";
+    int port = 55555;
+    public final static String username = "adamko";
+    public final static String localFolder = "local\\"+username;
 
     public static void main(String[] args){
+        //ClientThread client = new ClientThread(args);
+        //client.start();
+        launch(args);
+
+    }
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+
+        ClientThread.UpdateFilesFromServerClass updater = new ClientThread.UpdateFilesFromServerClass(
+                ip, port,60, localFolder, username);
+        updater.start();
+        //ExecutorService poolUploadFiles = Executors.newFixedThreadPool(10);
+        ExecutorService poolUploadFiles = Executors.newCachedThreadPool();
+
+        window = primaryStage;
+        window.setTitle("Super Project - Client");
+
+        //Form
+        TextField input = new TextField();
+        input.setPromptText("file path");
+
+        button = new Button("Send file");
+        button.setOnAction(e->{
+            String filename = input.getText();
+            System.out.println("GUI: sending file : " + filename);
+            poolUploadFiles.execute(
+                    new ClientThread.FileSenderClass(ip, port, filename)
+            );
+            //ClientThread.FileSenderClass fileSender = new ClientThread.FileSenderClass(ip, port, filename);
+            //fileSender.start();
+        });
+
+        window.setOnCloseRequest(e->{
+            updater.stop();
+            System.out.println("exit main");
+        });
+
+        //Layout
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(20, 20, 20, 20));
+        layout.getChildren().addAll(button, input);
+
+        Scene scene = new Scene(layout, 300, 250);
+        window.setScene(scene);
+        window.show();
+
+
+
+    }
+
+}
+class ClientThread implements Runnable{
+    Thread t;
+    public final static String username = "adamko";
+    public final static String localFolder = "local\\"+username;
+    public static String ip = "";
+    final static int port = 55555;
+    String[] args;
+    public ClientThread(String[] args){
+        this.args = args;
+    }
+    @Override
+    public void run(){
         if (args.length < 1) {
             ip = "127.0.0.1";
         }else {
@@ -54,7 +125,7 @@ public class client {
         //start update files thread
         UpdateFilesFromServerClass updater = new UpdateFilesFromServerClass(
                 ip, port,
-                socketCommunication, 60, localFolder);
+                60, localFolder, username);
         updater.start();
 
         Scanner in = new Scanner(System.in);
@@ -88,7 +159,12 @@ public class client {
                 }
             }
         }
-
+    }
+    public void start(){
+        if (t == null) {
+            t = new Thread (this);
+            t.start ();
+        }
     }
     static class UpdateFilesFromServerClass implements Runnable{
         private Thread t;
@@ -97,16 +173,30 @@ public class client {
         Socket socket;
         String localFolder;
         String ip;
+        String username;
         int port;
-        UpdateFilesFromServerClass(String ip, int port, Socket s, int waitTimeSeconds, String localFolder) {
+        UpdateFilesFromServerClass(String ip, int port, int waitTimeSeconds, String localFolder, String username) {
             this.ip = ip;
             this.port = port;
-            socket = s;
+            socket = null;
             waitTime = waitTimeSeconds*1000;
             this.localFolder = localFolder;
+            this.username = username;
             this.start();
         }
         public void run(){
+            do{
+                try{
+                    socket = new Socket(ip, port);
+                }catch(Exception e){
+                    System.out.println("Updater> Can't connect to server. Trying again in 10s");
+                    try{
+                        Thread.sleep(10000);
+                    }catch(InterruptedException ie){
+                    }
+                }
+            }while(socket == null);
+
             loop = true;
             while(loop){
                 //------------------------------------------ask server if any new files for me
@@ -117,7 +207,7 @@ public class client {
                 }catch (IOException e){
                     System.out.println("Updater> IOException: failed to get output stream from server");
                 }
-                out.println("list " + client.username);
+                out.println("list " + username);
                 ArrayList<String> listFilesOnServer;
                 listFilesOnServer = new ArrayList<String>();
                 try {
@@ -141,10 +231,10 @@ public class client {
                 listFilesLocal = listFilesForFolder(new File(localFolder));
                 listFilesOnServer.removeAll(listFilesLocal);
                 //if so, ------------------------------------------------------download those files
-                int numberOfFiledToDownload = listFilesOnServer.size();
-                if(numberOfFiledToDownload > 0){
+                int numberOfFilesToDownload = listFilesOnServer.size();
+                if(numberOfFilesToDownload > 0){
                     //create thread pool?
-                    ExecutorService pool = Executors.newFixedThreadPool(numberOfFiledToDownload);
+                    ExecutorService pool = Executors.newFixedThreadPool(numberOfFilesToDownload);
                     System.out.println("Updater> Downloading new files ...");
                     Iterator<String> i = listFilesOnServer.iterator();
                     while(i.hasNext()){
@@ -169,6 +259,7 @@ public class client {
                     System.out.println("Updater> thread interrupted while sleeping");
                 }
             }
+            System.out.println("Updater> Thread stopped");
         }
         public void start(){
             if (t == null) {
@@ -203,7 +294,7 @@ public class client {
             this.port = port;
             filename = fn;
             destination = dest;
-            this.start();
+            //this.start();
         }
         public void run(){
             Socket socketFile = null;
@@ -236,7 +327,7 @@ public class client {
             try {
                 DataInputStream dis = new DataInputStream(socketFile.getInputStream());
                 FileOutputStream fos = new FileOutputStream(destination+"\\"+filename);
-                byte[] buffer = new byte[4096];
+                byte[] buffer = new byte[size];// was 4096
                 int filesize = size;
                 int read = 0;
                 int totalRead = 0;
@@ -244,7 +335,7 @@ public class client {
                 while((read = dis.read(buffer, 0, Math.min(buffer.length, remaining))) > 0) {
                     totalRead += read;
                     remaining -= read;
-                    System.out.println("read " + totalRead + " bytes.");
+                    System.out.println(filename+" read " + totalRead + " bytes.");
                     fos.write(buffer, 0, read);
                 }
                 fos.close();
@@ -269,7 +360,7 @@ public class client {
         }
     }
     static class FileSenderClass implements Runnable{
-        private Thread t;
+        public Thread t;
         String filename;
         String ip;
         int port;
@@ -277,7 +368,7 @@ public class client {
             ip = i;
             port = p;
             filename = fn;
-            this.start();
+            //this.start();
         }
         public void run(){
             Socket socketFile = null;
