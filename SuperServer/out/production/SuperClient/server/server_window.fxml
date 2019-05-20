@@ -152,7 +152,7 @@
       <VBox prefHeight="530.0" prefWidth="188.0" spacing="5.0" BorderPane.alignment="CENTER">
          <children>
             <Label alignment="CENTER" prefHeight="17.0" prefWidth="189.0" text="User list" />
-            <ListView prefHeight="442.0" prefWidth="178.0" />
+            <ListView fx:id="listUsers" prefHeight="442.0" prefWidth="178.0" />
          </children>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

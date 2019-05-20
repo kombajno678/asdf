@@ -3,12 +3,10 @@ import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+
+import java.util.ArrayList;
 
 public class Controller {
 
@@ -18,11 +16,14 @@ public class Controller {
     private ServerThread server;
     private ServerThread.FileListUpdater updater;
 
-    private String hdd1;
-    private String hdd2;
-    private String hdd3;
-    private String hdd4;
-    private String hdd5;
+    //hdd folder names
+    String hdd1 = "hdd1";
+    String hdd2 = "hdd2";
+    String hdd3 = "hdd3";
+    String hdd4 = "hdd4";
+    String hdd5 = "hdd5";
+
+    ArrayList<String> hdd = new ArrayList<>();
 
     public Controller() {}
 
@@ -52,6 +53,8 @@ public class Controller {
         columnHdd5Owner.setCellValueFactory(new PropertyValueFactory<>("owner"));
         columnHdd5Others.setCellValueFactory(new PropertyValueFactory<>("others"));
     }
+
+    @FXML private ListView listUsers;
 
     @FXML private TableView<FileEntry> tableHdd1;
     @FXML private Label labelHdd1Files;
@@ -100,7 +103,12 @@ public class Controller {
     @FXML private TextField inputPath;
 
 
-
+    public void updateUsersOnline(ObservableList<String> users){
+        Platform.runLater(() -> {
+            listUsers.getItems().clear();
+            listUsers.getItems().setAll(users);
+        });
+    }
     public void updateFiles(ObservableList<FileEntry> f, int hdd ){
         TableView<FileEntry> t;
         Label files;
@@ -169,15 +177,16 @@ public class Controller {
             validFlag = false;
         }
         if(validFlag){
-            server = new ServerThread(port, nThreads, path);
+            ArrayList<String> hdd = new ArrayList<>();
+            hdd.add(path + "\\" + hdd1);
+            hdd.add(path + "\\" + hdd2);
+            hdd.add(path + "\\" + hdd3);
+            hdd.add(path + "\\" + hdd4);
+            hdd.add(path + "\\" + hdd5);
 
-            hdd1 = path + "\\hdd1";
-            hdd2 = path + "\\hdd2";
-            hdd3 = path + "\\hdd3";
-            hdd4 = path + "\\hdd4";
-            hdd5 = path + "\\hdd5";
+            server = new ServerThread(port, nThreads, path, hdd);
 
-            updater = new ServerThread.FileListUpdater(hdd1, hdd2, hdd3, hdd4, hdd5, this, 2);
+            updater = new ServerThread.FileListUpdater(hdd, this, server, 10);
             updater.start();
 
             buttonStop.setDisable(false);

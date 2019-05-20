@@ -26,6 +26,7 @@ public class Controller {
     private int port;// = 55555;
     private ClientThread.UpdateFilesFromServerClass updater = null;
     private ClientThread.CheckForNewLocalFiles checker = null;
+    private ClientThread.Login login = null;
 
     public Controller(){}
 
@@ -80,6 +81,9 @@ public class Controller {
             validFlag = false;
         }
         if(validFlag){
+
+            login = new ClientThread.Login(ip, port,username);
+
             updater = new ClientThread.UpdateFilesFromServerClass(this, ip, port, 60, localFolder, username);
             //updater.start();
 
@@ -107,6 +111,7 @@ public class Controller {
     public void Disconnect() {
         updater.stop();
         checker.stop();
+        login.stop();
         buttonConnect.setDisable(false);
         inputUsername.setDisable(false);
         inputPath.setDisable(false);

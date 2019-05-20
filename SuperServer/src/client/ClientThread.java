@@ -12,6 +12,78 @@ import java.util.concurrent.*;
 
 class ClientThread {
     public ClientThread(){}
+
+    static class Login implements Runnable{
+        private Thread t;
+        private Socket socket;
+        private String ip;
+        private int port;
+        private String username;
+
+        private boolean stop = false;
+
+        public Login(String ip, int port, String username) {
+            this.ip = ip;
+            this.port = port;
+            this.username = username;
+            start();
+        }
+
+        @Override
+        public void run() {
+            do {
+                try {
+                    socket = new Socket(ip, port);
+                } catch (Exception e) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ie) {
+                        if(stop)return;
+                    }
+                }
+            } while (socket == null);
+            PrintWriter out = null;
+            do {
+                try {
+                    out = new PrintWriter(socket.getOutputStream(), true);
+                } catch (IOException e) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException ie) {
+                        if(stop)return;
+                    }
+                }
+            }while (out == null);
+            //login
+            out.println("login "+username);
+            try{
+                Thread.sleep(Long.MAX_VALUE);
+            }catch(InterruptedException e){
+
+            }
+            //logout
+            out.println("logout "+username);
+            try{
+                socket.close();
+            }catch (IOException e){
+
+            }
+        }
+
+        public void stop(){
+            stop = true;
+            t.interrupt();
+        }
+
+        public void start(){
+            if (t == null) {
+                t = new Thread(this);
+                t.start();
+            }
+        }
+
+    }
+
     static class CheckForNewLocalFiles implements Runnable{
         private Thread t;
         boolean loop = true;
@@ -65,7 +137,7 @@ class ClientThread {
                 //System.out.println("Checker> Checking for new local files ... ");
                 //c.printText("Checker> Checking for new local files ... ");
                 ArrayList<String> listFilesLocal = listFilesForFolder(new File(localFolder));
-                //--------------------------------------------------------------------------------update new files on gui
+                //------------------------------------------------------------------------------ update new files on gui
                 ObservableList<FileEntry> listForGui = FXCollections.observableArrayList();
                 out.println("list " + username);
                 ArrayList<String> listFilesOnServer;
@@ -268,7 +340,7 @@ class ClientThread {
                     List<Callable<Object>> todo = new ArrayList<Callable<Object>>(numberOfFilesTpUpload);
                     while (i.hasNext()) {
                         try {
-                            poolUpload.execute(new ClientThread.FileSenderClass(c, ip, port, i.next(), localFolder));
+                            poolUpload.execute(new ClientThread.FileSenderClass(c, ip, port, i.next(), localFolder, username));
                             t.sleep(100);
                         } catch (Exception e) {
                             System.out.println("Failed to add new connection");
@@ -429,16 +501,17 @@ class ClientThread {
     }
     static class FileSenderClass implements Runnable{
         public Thread t;
-        String filename, localFolder;
+        String filename, localFolder, username;
         String ip;
         int port;
         Controller c;
-        FileSenderClass(Controller c, String i, int p, String fn, String localFolder) {
+        FileSenderClass(Controller c, String i, int p, String fn, String localFolder, String username) {
             ip = i;
             port = p;
             filename = fn;
             this.c = c;
             this.localFolder = localFolder;
+            this.username = username;
             //this.start();
             if (t == null) {
                 t = new Thread (this);
@@ -471,7 +544,8 @@ class ClientThread {
 
             //out.close();
             c.printText("Sending file: " + filename +" ("+ fsize + "B) ...");
-            out.println("file " + filename + " " + fsize);
+            System.out.println("file " + filename + " " + fsize + " " + username);
+            out.println("file " + filename + " " + fsize + " " + username);
             DataOutputStream dos;
             FileInputStream fis;
             try {
