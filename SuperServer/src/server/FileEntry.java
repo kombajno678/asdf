@@ -1,17 +1,36 @@
 package server;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
-public class FileEntry {
+public class FileEntry implements Serializable {
     private String filename;
     private int hddNo;
     private String path;
     private String owner;
     private ArrayList<String> others;
     private long size;
+    private String status = "server";
 
     public FileEntry() {}
-
+    //constructors for client
+    public FileEntry(String filename, String path, long size, String owner) {
+        this.filename = filename;
+        this.path = path;
+        this.size = size;
+        this.owner = owner;
+        this.others = new ArrayList<>();
+    }
+    public FileEntry(String filename, String path, long size, String owner, String status) {
+        this.filename = filename;
+        this.path = path;
+        this.size = size;
+        this.owner = owner;
+        this.status = status;
+        this.others = new ArrayList<>();
+    }
+    //constructors for server
     public FileEntry(String filename, int hddNo, String path, long size, String owner) {
         this.filename = filename;
         this.hddNo = hddNo;
@@ -29,6 +48,8 @@ public class FileEntry {
         this.others = others;
     }
 
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
     public String getPath() { return path; }
     public void setPath(String path) { this.path = path; }
     public int getHddNo() { return hddNo; }
@@ -54,5 +75,65 @@ public class FileEntry {
     }
     public void setOthers(ArrayList<String> others) {
         this.others = others;
+    }
+
+    public String getOthersString(){
+        String ret = "";
+        for(String a : others){
+            ret += a + ",";
+        }
+        ret = ret.substring(0, ret.length()-1);
+        return ret;
+    }
+
+    public String toCsv(){
+        if(others.size()> 0)
+            return filename + "," + size + "," + owner + "," + getOthersString() + "\n";
+        else
+            return filename + "," + size + "," + owner + "," + "" + "\n";
+    }
+
+
+    public boolean equals(FileEntry f) {
+        if(f == null && this != null || f != null && this == null)return false;
+        if(
+            this.filename.matches(f.getFilename()) &&
+            this.hddNo == f.getHddNo() &&
+            this.path.matches(f.getPath()) &&
+            this.owner.matches(f.getOwner()) &&
+            this.others.equals(f.getOthers())
+        ){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        FileEntry f = (FileEntry)obj;
+        if(
+            this.filename.matches(f.getFilename()) &&
+            this.hddNo == f.getHddNo() &&
+            this.path.matches(f.getPath()) &&
+            this.owner.matches(f.getOwner()) &&
+            this.others.equals(f.getOthers())
+        ){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "'" + filename + "'" +
+                "," + hddNo +
+                ",'" + path + "'" +
+                ",'" + owner + "'" +
+                "," + others +
+                "," + size +
+                "}";
     }
 }

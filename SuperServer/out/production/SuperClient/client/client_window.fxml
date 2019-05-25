@@ -57,6 +57,7 @@
             <TableView fx:id="tableFiles" disable="true" prefHeight="253.0" prefWidth="395.0" VBox.vgrow="ALWAYS">
               <columns>
                 <TableColumn fx:id="columnNames" prefWidth="119.0" text="Name" />
+                  <TableColumn fx:id="columnSize" prefWidth="75.0" text="Size" />
                   <TableColumn fx:id="columnShared" prefWidth="75.0" text="Shared to" />
                   <TableColumn fx:id="columnStatus" prefWidth="75.0" text="Status" />
               </columns>

@@ -1,11 +1,13 @@
 package client;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import jdk.nashorn.internal.ir.annotations.Ignore;
+import server.FileEntry;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,8 +26,10 @@ public class Controller {
     private String localFolder;// = "local\\"+username;
     private String ip;// = "127.0.0.1";
     private int port;// = 55555;
-    private ClientThread.UpdateFilesFromServerClass updater = null;
-    private ClientThread.CheckForNewLocalFiles checker = null;
+    //private ClientThread.UpdateFilesFromServerClass updater = null;
+    //private ClientThread.CheckForNewLocalFiles checker = null;
+
+    private ClientThread.BackgroundTasks bg = null;
     private ClientThread.Login login = null;
 
     public Controller(){}
@@ -33,8 +37,10 @@ public class Controller {
     @FXML
     private void initialize(){
         columnNames.setCellValueFactory(new PropertyValueFactory<>("filename"));
-        columnShared.setCellValueFactory(new PropertyValueFactory<>("sharedTo"));
+        columnSize.setCellValueFactory(new PropertyValueFactory<>("size"));
+        columnShared.setCellValueFactory(new PropertyValueFactory<>("others"));
         columnStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+
     }
     @FXML
     private Label textBotLeft;
@@ -46,6 +52,8 @@ public class Controller {
     private TableView<FileEntry> tableFiles;
     @FXML
     private TableColumn<FileEntry, String> columnNames;
+    @FXML
+    private TableColumn<FileEntry, String> columnSize;
     @FXML
     private TableColumn<FileEntry, String> columnShared;
     @FXML
@@ -83,11 +91,12 @@ public class Controller {
         if(validFlag){
 
             login = new ClientThread.Login(ip, port,username);
+            bg = new ClientThread.BackgroundTasks(localFolder, username, ip, port, this);
 
-            updater = new ClientThread.UpdateFilesFromServerClass(this, ip, port, 60, localFolder, username);
+            //updater = new ClientThread.UpdateFilesFromServerClass(this, ip, port, 60, localFolder, username);
             //updater.start();
 
-            checker = new ClientThread.CheckForNewLocalFiles(this, ip, port, 5, localFolder, username);
+            //checker = new ClientThread.CheckForNewLocalFiles(this, ip, port, 5, localFolder, username);
             //checker.start();
 
             //disable login form
@@ -109,9 +118,10 @@ public class Controller {
 
     }
     public void Disconnect() {
-        updater.stop();
-        checker.stop();
+        //updater.stop();
+        //checker.stop();
         login.stop();
+        bg.stop();
         buttonConnect.setDisable(false);
         inputUsername.setDisable(false);
         inputPath.setDisable(false);
@@ -155,30 +165,42 @@ public class Controller {
             }
         }
     }
-    public void updateFiles(ObservableList<FileEntry> f){
-        //remove what is not in new list of files
-        for(FileEntry fold : tableFiles.getItems()){
-            boolean fileFound = false;
-            FileEntry del = null;
-            for(FileEntry fnew : f){
-                if(fnew.getFilename().equals(fold.getFilename())){
-                    fileFound = true;
-                    del = fnew;
-                    break;
-                }
-            }
-            if(!fileFound){
-                tableFiles.getItems().removeAll(fold);
-            }else{
-                f.removeAll(del);
-            }
-
+    public void updateFiles(ArrayList<FileEntry> f) {
+        ObservableList<FileEntry> listForGui = FXCollections.observableArrayList();
+        for(FileEntry fe : f){
+            listForGui.add(fe);
         }
-        //add what is not present in current list of files
-        if(f.size() > 0)
-            for(FileEntry fnew : f){
-                tableFiles.getItems().addAll(fnew);
+        if(tableFiles.getItems().size() > 0){
+            //remove from new list or update entries that are already in gui
+            for (FileEntry fold : tableFiles.getItems()) {
+                boolean fileFound = false;
+                for (Iterator<FileEntry> i = listForGui.iterator(); i.hasNext(); ) {
+                    FileEntry fnew = i.next();
+                    if (fnew.getFilename().equals(fold.getFilename())) {
+                        //same filename
+                        if (!fnew.equals(fold)) {
+                            //different info, need to update
+                            fold.setOwner(fnew.getOwner());
+                            fold.setOthers(fnew.getOthers());
+                            fold.setSize(fnew.getSize());
+                        }
+                        fileFound = true;
+                        //remove from new list entry that is already in gui
+                        i.remove();
+                        break;
+                    }
+                }
+                if (!fileFound) {
+                    //remove from gui entry that is not present in new list
+                    tableFiles.getItems().removeAll(fold);
+                }
+                //add new entries to gui
             }
+        }
+
+        if(listForGui.size() > 0)
+            for(FileEntry fnew : listForGui)
+                tableFiles.getItems().addAll(fnew);
     }
 }
 

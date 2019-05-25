@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.*;
 
+import server.FileEntry;
+
 class ClientThread {
     public ClientThread(){}
 
@@ -84,6 +86,300 @@ class ClientThread {
 
     }
 
+    static class BackgroundTasks implements Runnable{
+        private Thread t;
+        private boolean loop;
+
+        private ArrayList<FileEntry> filesLocal = new ArrayList<>();
+        private ArrayList<FileEntry> filesServer = new ArrayList<>();
+        private String localFolder, username;
+        private Controller c;
+        private Socket socket;
+        private PrintWriter out;
+        private String ip;
+        private int port;
+        private int waitTime = 60;
+        public BackgroundTasks(String localFolder, String username, String ip, int port, Controller c) {
+            this.localFolder = localFolder;
+            this.username = username;
+            this.ip = ip;
+            this.port = port;
+            this.c = c;
+            loop = true;
+            if(t == null){
+                this.t = new Thread(this);
+                t.start();
+            }
+        }
+
+        @Override
+        public void run() {
+            System.out.println("BG thread srtared");
+            createSocket();
+            while (loop) {
+
+                //-------------------------------------------read files from hdd
+                ArrayList<FileEntry> tempLocal = getFilesHdd();
+
+                //-------------------------------------------update ListLocal
+
+                //remove from temp entries that are already in filesLocal (temp - filesLocal)
+                if(filesLocal.size() == 0){//if filesLocal is empty just add all from temp
+                    filesLocal.addAll(tempLocal);
+                }else {
+                    for (Iterator<FileEntry> i = tempLocal.iterator(); i.hasNext(); ) {
+                        FileEntry fe = i.next();
+                        for (FileEntry fold : filesLocal) {
+                            if (fe.getFilename().matches(fold.getFilename())) {
+                                i.remove();
+                            }
+                        }
+                    }
+                    //add what is left in temp to filesLocal
+                    if(tempLocal.size() > 0)
+                        filesLocal.addAll(tempLocal);
+                }
+
+
+                //------------------------------------------get list of files from server
+                ArrayList<FileEntry> tempServer = getFilesServer();
+
+                //update filesServer
+                filesServer = tempServer;
+
+                //update owners n others in local lost
+                for(int i_local = 0; i_local < filesLocal.size(); i_local++){
+                    String name = filesLocal.get(i_local).getFilename();
+                    for(FileEntry fs: filesServer){
+                        if(fs.getFilename().matches(name)){
+                            //found local file on filesServer, now update owner and stuff
+                            filesLocal.get(i_local).setOwner(fs.getOwner());
+                            filesLocal.get(i_local).setOthers(fs.getOthers());
+                            filesLocal.get(i_local).setHddNo(fs.getHddNo());
+                            filesLocal.get(i_local).setStatus("local+server");
+                            break;
+                        }
+
+                    }
+
+                }
+
+
+                //create list for gui
+                ArrayList<FileEntry> listForGui = new ArrayList<>();
+                listForGui.addAll(filesLocal);
+                listForGui.addAll(filesServer);
+
+                //send list to gui
+                c.updateFiles(listForGui);
+
+                //create list of files to download/upload
+                ArrayList<FileEntry> downloadList = getDownloadList();
+                ArrayList<FileEntry> uploadList = getUploadList();
+
+                System.out.print("filesLocal: ");
+                for(FileEntry f : filesLocal){
+                    System.out.print(f.getFilename() + ", ");
+                }
+                System.out.println();
+                System.out.print("filesServer : ");
+                for(FileEntry f : filesServer){
+                    System.out.print(f.getFilename() + ", ");
+                }
+                System.out.println();
+                System.out.print("listForGui : ");
+                for(FileEntry f : listForGui){
+                    System.out.print(f.getFilename() + ", ");
+                }
+                System.out.println();
+
+
+                /*
+                if(downloadList.size() > 0){
+                    //create threads to download them
+                    download(downloadList);
+                    //wait to finish downloading
+                    //add entries to filesLocal
+                    filesLocal.addAll(downloadList);
+                }
+                if(uploadList.size() > 0){
+                    //create threads to upload them
+                    upload(uploadList);
+                    //wait to finish uploading
+                    //add entries to filesServer
+                    filesServer.addAll(uploadList);
+                }
+                */
+                try{
+                    Thread.sleep(waitTime * 1000);
+                }catch(InterruptedException e){
+
+                }
+
+            }
+            closeSocket();
+            System.out.println("BG thread ended");
+        }
+        public void stop(){
+            loop = false;
+            t.interrupt();
+        }
+        private void createSocket(){
+            do {
+                if(!loop)break;
+                try {
+                    socket = new Socket(ip, port);
+                } catch (Exception e) {
+                    if(!loop)break;
+                    System.out.println("BG> Can't connect to server. Trying again in 10s");
+                    //c.printText("CheckForNewLocalFiles> Can't connect to server. Trying again in 10s");
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException ie) {
+                        if(!loop)break;
+                    }
+                }
+            } while (socket == null);
+            try {
+                out = new PrintWriter(socket.getOutputStream(), true);
+            } catch (IOException e) {
+                System.out.println("BG> IOException: failed to get output stream from server");
+            }
+        }
+        private void closeSocket(){
+            out.println("exit");
+            try{
+                socket.close();
+            }catch(Exception e){
+
+            }
+        }
+        private ArrayList<FileEntry> getFilesHdd(){
+            File folder = new File(localFolder);
+            ArrayList<FileEntry> list = new ArrayList<>();
+            try {
+                for (final File fileEntry : folder.listFiles()) {
+                    //if (fileEntry.isDirectory()) {
+                    //   listFilesForFolder(fileEntry);
+                    //} else {
+                        String filename = fileEntry.getName();
+                        String path = localFolder + File.separator + File.separator + filename;
+                        String owner = "";//don't know who is the owner of the file yet
+                        String status = "local";
+                        long size = fileEntry.length();
+                        list.add(new FileEntry(filename, path, size, owner, status));
+                    //}
+                }
+            }catch (NullPointerException e){
+
+            }
+            return list;
+        }
+        private ArrayList<FileEntry> getFilesServer(){
+            ArrayList<FileEntry> list = new ArrayList<>();
+            out.println("list " + username);
+            try {
+                ObjectInputStream objectInput = new ObjectInputStream(socket.getInputStream()); //Error Line!
+                try {
+                    Object object = objectInput.readObject();
+                    list = (ArrayList<FileEntry>) object;
+                } catch (ClassNotFoundException e) {
+                    //e.printStackTrace();
+                }
+            } catch (IOException e) {
+                //e.printStackTrace();
+            }
+            return list;
+        }
+        private ArrayList<FileEntry> getDownloadList(){
+            ArrayList<FileEntry> list = (ArrayList<FileEntry>)filesServer.clone();
+            for(Iterator<FileEntry> i = list.iterator();i.hasNext();){
+                FileEntry f = i.next();
+                for(FileEntry fs : filesLocal){
+                    if(fs.getFilename().matches(f.getFilename())){
+                        //same filename
+                        i.remove();
+                        break;
+                    }
+                }
+            }
+            return list;
+        }
+        private ArrayList<FileEntry> getUploadList(){
+            ArrayList<FileEntry> list = (ArrayList<FileEntry>)filesLocal.clone();
+            for(Iterator<FileEntry> i = list.iterator();i.hasNext();){
+                FileEntry f = i.next();
+                for(FileEntry fs : filesServer){
+                    if(fs.getFilename().matches(f.getFilename())){
+                        //same filename
+                        i.remove();
+                        break;
+                    }
+                }
+            }
+            return list;
+        }
+        private int download(ArrayList<FileEntry> list){
+            int n = list.size();
+            System.out.println("Updater> files to download:"+list);
+            //create thread pool
+            ExecutorService poolDownload = Executors.newFixedThreadPool(n);
+            System.out.println("Updater> Downloading "+n+" files ...");
+            //c.printText("Updater> Downloading new files ...");
+            Iterator<FileEntry> i = list.iterator();
+            List<Callable<Object>> todo = new ArrayList<>(n);
+            while (i.hasNext()) {
+                FileEntry f = i.next();
+                poolDownload.execute(new ClientThread.FileDownloaderClass(c, ip, port, f.getFilename(), localFolder));
+                f.setStatus("local+server");
+                try{
+                    t.sleep(100);
+                }catch(InterruptedException e){
+
+                }
+            }
+            System.out.println("Updater> Waiting for "+n+" files to download ... ");
+            try {
+                //poolUpload.awaitTermination(600, TimeUnit.SECONDS);
+                List<Future<Object>> answers = poolDownload.invokeAll(todo);
+            } catch (InterruptedException e) {
+
+            }
+            System.out.println("Updater> Downloaded "+n+" files!");
+            return n;
+        }
+        private int upload(ArrayList<FileEntry> list){
+            int n = list.size();
+            System.out.println("Updater> files to upload:"+list);
+            //create thread pool
+            ExecutorService poolDownload = Executors.newFixedThreadPool(n);
+            System.out.println("Updater> uploading "+n+" files ...");
+            //c.printText("Updater> Downloading new files ...");
+            Iterator<FileEntry> i = list.iterator();
+            List<Callable<Object>> todo = new ArrayList<>(n);
+            while (i.hasNext()) {
+                FileEntry f = i.next();
+                poolDownload.execute(new ClientThread.FileSenderClass(c, ip, port, f.getFilename(), localFolder, username));
+                f.setStatus("local+server");
+                try{
+                    t.sleep(100);
+                }catch(InterruptedException e){
+
+                }
+            }
+            System.out.println("Updater> Waiting for "+n+" files to upload ... ");
+            try {
+                //poolUpload.awaitTermination(600, TimeUnit.SECONDS);
+                List<Future<Object>> answers = poolDownload.invokeAll(todo);
+            } catch (InterruptedException e) {
+
+            }
+            System.out.println("Updater> uploaded "+n+" files!");
+            return n;
+        }
+
+    }
+/*
     static class CheckForNewLocalFiles implements Runnable{
         private Thread t;
         boolean loop = true;
@@ -109,17 +405,17 @@ class ClientThread {
         public void run() {
             loop = true;
             do {
-                if(!loop)return;
+                if(!loop)break;
                 try {
                     socket = new Socket(ip, port);
                 } catch (Exception e) {
-                    if(!loop)return;
+                    if(!loop)break;
                     System.out.println("CheckForNewLocalFiles> Can't connect to server. Trying again in 10s");
                     c.printText("CheckForNewLocalFiles> Can't connect to server. Trying again in 10s");
                     try {
                         Thread.sleep(10000);
                     } catch (InterruptedException ie) {
-                        if(!loop)return;
+                        if(!loop)break;
                     }
                 }
             } while (socket == null);
@@ -127,7 +423,6 @@ class ClientThread {
             try {
                 out = new PrintWriter(socket.getOutputStream(), true);
             } catch (IOException e) {
-                if(!loop)return;
                 System.out.println("Updater> IOException: failed to get output stream from server");
             }
 
@@ -136,17 +431,16 @@ class ClientThread {
 
                 //System.out.println("Checker> Checking for new local files ... ");
                 //c.printText("Checker> Checking for new local files ... ");
-                ArrayList<String> listFilesLocal = listFilesForFolder(new File(localFolder));
+                ArrayList<FileEntry> listFilesLocal = listFilesForFolder(new File(localFolder));
                 //------------------------------------------------------------------------------ update new files on gui
                 ObservableList<FileEntry> listForGui = FXCollections.observableArrayList();
                 out.println("list " + username);
-                ArrayList<String> listFilesOnServer;
-                listFilesOnServer = new ArrayList<String>();
+                ArrayList<FileEntry> listFilesOnServer;
                 try {
                     ObjectInputStream objectInput = new ObjectInputStream(socket.getInputStream()); //Error Line!
                     try {
                         Object object = objectInput.readObject();
-                        listFilesOnServer = (ArrayList<String>) object;
+                        listFilesOnServer = (ArrayList<FileEntry>) object;
                     } catch (ClassNotFoundException e) {
                         continue;
                         //e.printStackTrace();
@@ -156,11 +450,14 @@ class ClientThread {
                     //e.printStackTrace();
                 }
 
-                for(String a : listFilesLocal){
-                    if(listFilesOnServer.contains(a)){
-                        listForGui.add(new FileEntry(a, username, "on server"));
+                //add files to gui list
+                for(FileEntry f : listFilesLocal){
+                    if(listFilesOnServer.contains(f)){
+                        f.setStatus("on server");
                     }else
-                    listForGui.add(new FileEntry(a, username, "local"));
+                        f.setStatus("local");
+
+                    listForGui.add(f);
                 }
 
                 try{
@@ -191,14 +488,18 @@ class ClientThread {
             t.interrupt();
         }
 
-        public ArrayList<String> listFilesForFolder(final File folder) {
-            ArrayList<String> list = new ArrayList<String>();
+        public ArrayList<FileEntry> listFilesForFolder(final File folder) {
+            ArrayList<FileEntry> list = new ArrayList<>();
             try {
                 for (final File fileEntry : folder.listFiles()) {
                     if (fileEntry.isDirectory()) {
                         listFilesForFolder(fileEntry);
                     } else {
-                        list.add(fileEntry.getName());
+                        String filename = fileEntry.getName();
+                        String path = localFolder + File.separator + File.separator + filename;
+                        String owner = username;
+                        long size = fileEntry.length();
+                        list.add(new FileEntry(filename, path, size, owner));
                     }
                 }
             }catch (NullPointerException e){
@@ -253,13 +554,7 @@ class ClientThread {
 
             PrintWriter out = null;
             //---------------------------------------------------------------initial sleep
-            /*try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                System.out.println("Updater> thread interrupted while sleeping");
-                c.printText("Updater> thread interrupted while sleeping");
 
-            }*/
             while (loop) {
 
                 //------------------------------------------ask server if any new files for me
@@ -274,13 +569,12 @@ class ClientThread {
                     //c.printText("Updater> IOException: failed to get output stream from server");
                 }
                 out.println("list " + username);
-                ArrayList<String> listFilesOnServer;
-                listFilesOnServer = new ArrayList<String>();
+                ArrayList<FileEntry> listFilesOnServer;
                 try {
                     ObjectInputStream objectInput = new ObjectInputStream(socket.getInputStream()); //Error Line!
                     try {
                         Object object = objectInput.readObject();
-                        listFilesOnServer = (ArrayList<String>) object;
+                        listFilesOnServer = (ArrayList<FileEntry>) object;
                     } catch (ClassNotFoundException e) {
                         System.out.println("Updater> ClassNotFoundException");
                         continue;
@@ -293,9 +587,9 @@ class ClientThread {
                 }
                 System.out.println("Updater> listFilesOnServer:"+listFilesOnServer);
 
-                ArrayList<String> listFilesLocal = listFilesForFolder(new File(localFolder));
+                ArrayList<FileEntry> listFilesLocal = listFilesForFolder(new File(localFolder));
                 System.out.println("Updater> listFilesLocal:"+listFilesLocal);
-                ArrayList<String> listFilesOnServerCopy = (ArrayList<String>)listFilesOnServer.clone();
+                ArrayList<FileEntry> listFilesOnServerCopy = (ArrayList<FileEntry>)listFilesOnServer.clone();
 
                 listFilesOnServer.removeAll(listFilesLocal);
                 //if so, ------------------------------------------------------download new files
@@ -303,15 +597,15 @@ class ClientThread {
                 int numberOfFilesToDownload = listFilesOnServer.size();
                 if (numberOfFilesToDownload > 0) {
                     System.out.println("Updater> files to download:"+listFilesOnServer);
-                    //create thread pool?
+                    //create thread pool
                     ExecutorService poolDownload = Executors.newFixedThreadPool(numberOfFilesToDownload);
                     System.out.println("Updater> Downloading "+numberOfFilesToDownload+" files ...");
                     //c.printText("Updater> Downloading new files ...");
-                    Iterator<String> i = listFilesOnServer.iterator();
-                    List<Callable<Object>> todo = new ArrayList<Callable<Object>>(numberOfFilesToDownload);
+                    Iterator<FileEntry> i = listFilesOnServer.iterator();
+                    List<Callable<Object>> todo = new ArrayList<>(numberOfFilesToDownload);
                     while (i.hasNext()) {
                         try {
-                            poolDownload.execute(new ClientThread.FileDownloaderClass(c, ip, port, i.next(), localFolder));
+                            poolDownload.execute(new ClientThread.FileDownloaderClass(c, ip, port, i.next().getFilename(), localFolder));
                             t.sleep(100);
                         } catch (Exception e) {
                             System.out.println("Failed to add new connection");
@@ -323,7 +617,9 @@ class ClientThread {
                     try {
                         //poolUpload.awaitTermination(600, TimeUnit.SECONDS);
                         List<Future<Object>> answers = poolDownload.invokeAll(todo);
-                    } catch (InterruptedException e) {}
+                    } catch (InterruptedException e) {
+
+                    }
                     System.out.println("Updater> Downloaded "+numberOfFilesToDownload+" files!");
 
                 }
@@ -336,11 +632,11 @@ class ClientThread {
                     ExecutorService poolUpload = Executors.newFixedThreadPool(numberOfFilesTpUpload);
                     System.out.println("Updater> Uploading "+numberOfFilesTpUpload+" files ...");
                     //c.printText("Updater> Uploading new files ...");
-                    Iterator<String> i = listFilesLocal.iterator();
+                    Iterator<FileEntry> i = listFilesLocal.iterator();
                     List<Callable<Object>> todo = new ArrayList<Callable<Object>>(numberOfFilesTpUpload);
                     while (i.hasNext()) {
                         try {
-                            poolUpload.execute(new ClientThread.FileSenderClass(c, ip, port, i.next(), localFolder, username));
+                            poolUpload.execute(new ClientThread.FileSenderClass(c, ip, port, i.next().getFilename(), localFolder, username));
                             t.sleep(100);
                         } catch (Exception e) {
                             System.out.println("Failed to add new connection");
@@ -353,7 +649,9 @@ class ClientThread {
                     try {
                         //poolUpload.awaitTermination(600, TimeUnit.SECONDS);
                         List<Future<Object>> answers = poolUpload.invokeAll(todo);
-                    } catch (InterruptedException e) {}
+                    } catch (InterruptedException e) {
+
+                    }
                     System.out.println("Updater> Uploaded "+numberOfFilesTpUpload+" files!");
                 }
                 //---------------------------------------------------------------go to sleep
@@ -388,15 +686,18 @@ class ClientThread {
             t.interrupt();
         }
 
-        public ArrayList<String> listFilesForFolder(final File folder) {
-            ArrayList<String> list = new ArrayList<String>();
+        public ArrayList<FileEntry> listFilesForFolder(final File folder) {
+            ArrayList<FileEntry> list = new ArrayList<>();
             try {
                 for (final File fileEntry : folder.listFiles()) {
                     if (fileEntry.isDirectory()) {
                         listFilesForFolder(fileEntry);
                     } else {
-                        //System.out.println(fileEntry.getName());
-                        list.add(fileEntry.getName());
+                        String filename = fileEntry.getName();
+                        String path = localFolder + File.separator + File.separator + filename;
+                        String owner = username;
+                        long size = fileEntry.length();
+                        list.add(new FileEntry(filename, path, size, owner));
                     }
                 }
             }catch (NullPointerException e){
@@ -405,6 +706,9 @@ class ClientThread {
             return list;
         }
     }
+
+
+    */
 
     static class FileDownloaderClass implements Runnable{
         private Thread t;

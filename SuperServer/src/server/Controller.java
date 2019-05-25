@@ -1,12 +1,16 @@
 package server;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 public class Controller {
 
@@ -15,6 +19,7 @@ public class Controller {
 
     private ServerThread server;
     private ServerThread.FileListUpdater updater;
+    //private ServerThread.CsvReadWrite csv;
 
     //hdd folder names
     String hdd1 = "hdd1";
@@ -109,60 +114,84 @@ public class Controller {
             listUsers.getItems().setAll(users);
         });
     }
-    public void updateFiles(ObservableList<FileEntry> f, int hdd ){
-        TableView<FileEntry> t;
-        Label files;
-        switch(hdd){
-            case 1:
-                t = tableHdd1;
-                files = labelHdd1Files;
-                break;
-            case 2:
-                t = tableHdd2;
-                files = labelHdd2Files;
-                break;
-            case 3:
-                t = tableHdd3;
-                files = labelHdd3Files;
-                break;
-            case 4:
-                t = tableHdd4;
-                files = labelHdd4Files;
-                break;
-            case 5:
-                t = tableHdd5;
-                files = labelHdd5Files;
-                break;
-            default:
-                return;
+    public void updateFiles(ArrayList<FileEntry> f){
+
+
+        //create 5 lists, one for each hdd
+        ArrayList<ObservableList<FileEntry>> listForGui = new ArrayList<>();
+        for(int hddNo = 0; hddNo < 5; hddNo += 1)
+            listForGui.add(FXCollections.observableArrayList());
+
+        //fill those lists
+        for(FileEntry fe : f){
+            listForGui.get(fe.getHddNo()-1).add(fe);
         }
-        //remove what is not in new list of files
-        for(FileEntry fold : t.getItems())
-        {
-            boolean fileFound = false;
-            FileEntry del = null;
-            for(FileEntry fnew : f){
-                if(fnew.getFilename().equals(fold.getFilename())){
-                    fileFound = true;
-                    del = fnew;
+
+        //update gui
+        for(int hdd = 1; hdd <= 5; hdd+=1){
+            TableView<FileEntry> t;
+            Label files;
+            switch(hdd){
+                case 1:
+                    t = tableHdd1;
+                    files = labelHdd1Files;
                     break;
+                case 2:
+                    t = tableHdd2;
+                    files = labelHdd2Files;
+                    break;
+                case 3:
+                    t = tableHdd3;
+                    files = labelHdd3Files;
+                    break;
+                case 4:
+                    t = tableHdd4;
+                    files = labelHdd4Files;
+                    break;
+                case 5:
+                    t = tableHdd5;
+                    files = labelHdd5Files;
+                    break;
+                default:
+                    return;
+            }
+            //remove from new list or update entries that are already in gui
+            for(FileEntry fold : t.getItems())
+            {
+                boolean fileFound = false;
+                for(Iterator<FileEntry> i = listForGui.get(hdd-1).iterator(); i.hasNext();){
+                    FileEntry fnew = i.next();
+                    if(fnew.getFilename().equals(fold.getFilename())){
+                        //same filename
+                        if(!fnew.equals(fold)){
+                            //different info, need to update
+                            fold.setOwner(fnew.getOwner());
+                            fold.setOthers(fnew.getOthers());
+                            fold.setSize(fnew.getSize());
+                        }
+                        fileFound = true;
+                        //remove from new list entry that is already in gui
+                        i.remove();
+                        break;
+                    }
+
                 }
-            }
-            if(!fileFound){
-                t.getItems().removeAll(fold);
-            }else{
-                f.removeAll(del);
-            }
 
+                if(!fileFound){
+                    //remove from gui entry that is not present in new list
+                    t.getItems().removeAll(fold);
+                }
+
+            }
+            //add new entries to gui
+            if(listForGui.size() > 0)
+                for(FileEntry fnew : listForGui.get(hdd-1))
+                    t.getItems().addAll(fnew);
+
+            //don't change, throws exception otherwise
+            Platform.runLater(() -> files.setText(t.getItems().size()+" files"));
         }
-        //add what is not present in current list of files
-        if(f.size() > 0)
-            for(FileEntry fnew : f){
-                t.getItems().addAll(fnew);
-            }
 
-        //don't change, throws exception otherwise
-        Platform.runLater(() -> files.setText(t.getItems().size()+" files"));
     }
 
     @FXML void Start(ActionEvent event) {
@@ -177,18 +206,21 @@ public class Controller {
             validFlag = false;
         }
         if(validFlag){
-            ArrayList<String> hdd = new ArrayList<>();
-            hdd.add(path + "\\" + hdd1);
-            hdd.add(path + "\\" + hdd2);
-            hdd.add(path + "\\" + hdd3);
-            hdd.add(path + "\\" + hdd4);
-            hdd.add(path + "\\" + hdd5);
+            //ArrayList<String> hdd = new ArrayList<>();
+            hdd.add(path + File.separator + File.separator + hdd1);
+            hdd.add(path + File.separator + File.separator + hdd2);
+            hdd.add(path + File.separator + File.separator + hdd3);
+            hdd.add(path + File.separator + File.separator + hdd4);
+            hdd.add(path + File.separator + File.separator + hdd5);
 
             server = new ServerThread(port, nThreads, path, hdd);
 
             updater = new ServerThread.FileListUpdater(hdd, this, server, 10);
             updater.start();
-
+/*
+            csv = new ServerThread.CsvReadWrite(server, 10);
+            csv.start();
+*/
             buttonStop.setDisable(false);
 
             inputPath.setDisable(true);
@@ -201,6 +233,7 @@ public class Controller {
         event.consume();
         server.stop();
         updater.stop();
+        //csv.stop();
         buttonStop.setDisable(true);
 
         inputPath.setDisable(false);
