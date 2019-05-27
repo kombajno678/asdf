@@ -22,6 +22,16 @@ import java.util.concurrent.TimeUnit;
 
 public class Controller {
 
+
+
+    private boolean syncFlag;
+    public boolean isSyncFlag() {
+        return syncFlag;
+    }
+
+    public void setSyncFlag(boolean syncFlag) {
+        this.syncFlag = syncFlag;
+    }
     private String username;// = "adamko";
     private String localFolder;// = "local\\"+username;
     private String ip;// = "127.0.0.1";
@@ -30,7 +40,7 @@ public class Controller {
     //private ClientThread.CheckForNewLocalFiles checker = null;
 
     private ClientThread.BackgroundTasks bg = null;
-    private ClientThread.Login login = null;
+    //private ClientThread.Login login = null;
 
     public Controller(){}
 
@@ -42,12 +52,15 @@ public class Controller {
         columnStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
     }
+
     @FXML
     private Label textBotLeft;
     @FXML
     private Label textBotRight;
     @FXML
     private Button buttonDelete;
+    @FXML
+    private ToggleButton SyncButton;
     @FXML
     private TableView<FileEntry> tableFiles;
     @FXML
@@ -90,7 +103,7 @@ public class Controller {
         }
         if(validFlag){
 
-            login = new ClientThread.Login(ip, port,username);
+            //login = new ClientThread.Login(ip, port,username);
             bg = new ClientThread.BackgroundTasks(localFolder, username, ip, port, this);
 
             //updater = new ClientThread.UpdateFilesFromServerClass(this, ip, port, 60, localFolder, username);
@@ -113,14 +126,16 @@ public class Controller {
             buttonClear.setDisable(false);
 
             textConsole.setDisable(false);
-            textConsole.setText("Connected to " + ip + "\n");
+            textConsole.setText("Connecting to " + ip + "... ");
+
+            syncFlag = SyncButton.isPressed();
         }
 
     }
     public void Disconnect() {
         //updater.stop();
         //checker.stop();
-        login.stop();
+        //login.stop();
         bg.stop();
         buttonConnect.setDisable(false);
         inputUsername.setDisable(false);
@@ -133,6 +148,7 @@ public class Controller {
         buttonDisconnect.setDisable(true);
         buttonClear.setDisable(true);
         textConsole.setDisable(true);
+        clearFiles();
     }
 
     public void Clear(){
@@ -165,42 +181,58 @@ public class Controller {
             }
         }
     }
+    public void clearFiles(){
+        tableFiles.getItems().clear();
+    }
     public void updateFiles(ArrayList<FileEntry> f) {
         ObservableList<FileEntry> listForGui = FXCollections.observableArrayList();
         for(FileEntry fe : f){
             listForGui.add(fe);
         }
+
+        System.out.println("listForGui: ");
+        for(FileEntry fe : listForGui){
+            System.out.println(" " + fe.getFilename() +" : "+fe.getStatus());
+        }
+        System.out.println();
+
+
+        System.out.println("tableFiles: ");
+        for(FileEntry fe : tableFiles.getItems()){
+            System.out.println(" " + fe.getFilename() +" : "+fe.getStatus());
+        }
+        System.out.println();
+
         if(tableFiles.getItems().size() > 0){
-            //remove from new list or update entries that are already in gui
-            for (FileEntry fold : tableFiles.getItems()) {
-                boolean fileFound = false;
-                for (Iterator<FileEntry> i = listForGui.iterator(); i.hasNext(); ) {
-                    FileEntry fnew = i.next();
-                    if (fnew.getFilename().equals(fold.getFilename())) {
-                        //same filename
-                        if (!fnew.equals(fold)) {
-                            //different info, need to update
-                            fold.setOwner(fnew.getOwner());
-                            fold.setOthers(fnew.getOthers());
-                            fold.setSize(fnew.getSize());
-                        }
-                        fileFound = true;
-                        //remove from new list entry that is already in gui
-                        i.remove();
+            for(Iterator<FileEntry> fGui = tableFiles.getItems().iterator(); fGui.hasNext();){
+                FileEntry fgui = fGui.next();
+                boolean found = false;
+                for(Iterator<FileEntry> fList = listForGui.iterator(); fList.hasNext();){
+                    FileEntry flist = fList.next();
+                    if(fgui.equals2(flist)){
+                        //same entry, skip, all good
+                        System.out.println(" " + fgui.getFilename() +" equals " + flist.getFilename());
+                        //later delete from list4gui
+                        found = true;
+                        fList.remove();
                         break;
+                    }else{
+                        //continue search
                     }
                 }
-                if (!fileFound) {
-                    //remove from gui entry that is not present in new list
-                    tableFiles.getItems().removeAll(fold);
+                if(!found){
+                    fGui.remove();
                 }
-                //add new entries to gui
             }
+
         }
 
         if(listForGui.size() > 0)
             for(FileEntry fnew : listForGui)
                 tableFiles.getItems().addAll(fnew);
+    }
+    public void changeStateSync(){
+        setSyncFlag(SyncButton.isPressed());
     }
 }
 

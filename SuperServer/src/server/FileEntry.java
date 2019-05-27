@@ -94,14 +94,12 @@ public class FileEntry implements Serializable {
     }
 
 
-    public boolean equals(FileEntry f) {
+    public boolean equals2(FileEntry f) {
         if(f == null && this != null || f != null && this == null)return false;
         if(
             this.filename.matches(f.getFilename()) &&
-            this.hddNo == f.getHddNo() &&
-            this.path.matches(f.getPath()) &&
-            this.owner.matches(f.getOwner()) &&
-            this.others.equals(f.getOthers())
+            this.others.equals(f.getOthers()) &&
+            this.status.equals(f.getStatus())
         ){
             return true;
         }else{

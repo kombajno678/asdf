@@ -85,6 +85,7 @@
             <TextField fx:id="inputIP" promptText="Server's IP" text="127.0.0.1" />
             <TextField fx:id="inputPort" promptText="Server's port" text="55555" />
             <Button fx:id="buttonConnect" defaultButton="true" mnemonicParsing="false" onAction="#Connect" prefHeight="25.0" prefWidth="148.0" text="Connect" />
+            <ToggleButton fx:id="SyncButton" mnemonicParsing="false" onAction="#changeStateSync" prefHeight="18.0" prefWidth="142.0" text="Synchronize with server" />
             <Button fx:id="buttonDisconnect" disable="true" mnemonicParsing="false" onAction="#Disconnect" prefHeight="25.0" prefWidth="172.0" text="Disconnect" />
          </children>
          <padding>

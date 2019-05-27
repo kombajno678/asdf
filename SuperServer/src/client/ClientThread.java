@@ -9,87 +9,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.*;
+//import java.util.concurrent.ThreadLocalRandom;
 
 import server.FileEntry;
 
 class ClientThread {
     public ClientThread(){}
 
-    static class Login implements Runnable{
-        private Thread t;
-        private Socket socket;
-        private String ip;
-        private int port;
-        private String username;
-
-        private boolean stop = false;
-
-        public Login(String ip, int port, String username) {
-            this.ip = ip;
-            this.port = port;
-            this.username = username;
-            start();
-        }
-
-        @Override
-        public void run() {
-            do {
-                try {
-                    socket = new Socket(ip, port);
-                } catch (Exception e) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ie) {
-                        if(stop)return;
-                    }
-                }
-            } while (socket == null);
-            PrintWriter out = null;
-            do {
-                try {
-                    out = new PrintWriter(socket.getOutputStream(), true);
-                } catch (IOException e) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException ie) {
-                        if(stop)return;
-                    }
-                }
-            }while (out == null);
-            //login
-            out.println("login "+username);
-            try{
-                Thread.sleep(Long.MAX_VALUE);
-            }catch(InterruptedException e){
-
-            }
-            //logout
-            out.println("logout "+username);
-            try{
-                socket.close();
-            }catch (IOException e){
-
-            }
-        }
-
-        public void stop(){
-            stop = true;
-            t.interrupt();
-        }
-
-        public void start(){
-            if (t == null) {
-                t = new Thread(this);
-                t.start();
-            }
-        }
-
-    }
-
     static class BackgroundTasks implements Runnable{
         private Thread t;
         private boolean loop;
-
         private ArrayList<FileEntry> filesLocal = new ArrayList<>();
         private ArrayList<FileEntry> filesServer = new ArrayList<>();
         private String localFolder, username;
@@ -98,7 +27,7 @@ class ClientThread {
         private PrintWriter out;
         private String ip;
         private int port;
-        private int waitTime = 60;
+        private int waitTime = 5;
         public BackgroundTasks(String localFolder, String username, String ip, int port, Controller c) {
             this.localFolder = localFolder;
             this.username = username;
@@ -115,14 +44,19 @@ class ClientThread {
         @Override
         public void run() {
             System.out.println("BG thread srtared");
-            createSocket();
+            if(socket == null)createSocket();
+            if(login()){
+                c.printText(" connected and logged in as: " + username);
+            }
+            int n = 2;
             while (loop) {
-
+                n--;
+                if(socket == null)createSocket();
                 //-------------------------------------------read files from hdd
                 ArrayList<FileEntry> tempLocal = getFilesHdd();
 
                 //-------------------------------------------update ListLocal
-
+                //todo: if file is deleted from folder, its still in fileslocal list
                 //remove from temp entries that are already in filesLocal (temp - filesLocal)
                 if(filesLocal.size() == 0){//if filesLocal is empty just add all from temp
                     filesLocal.addAll(tempLocal);
@@ -142,10 +76,15 @@ class ClientThread {
 
 
                 //------------------------------------------get list of files from server
-                ArrayList<FileEntry> tempServer = getFilesServer();
 
-                //update filesServer
-                filesServer = tempServer;
+                ArrayList<FileEntry> tempServer = new ArrayList<>();
+                if(socket != null) {
+                    tempServer = getFilesServer();
+                    //update filesServer
+                    filesServer = tempServer;
+                }
+
+
 
                 //update owners n others in local lost
                 for(int i_local = 0; i_local < filesLocal.size(); i_local++){
@@ -168,7 +107,19 @@ class ClientThread {
                 //create list for gui
                 ArrayList<FileEntry> listForGui = new ArrayList<>();
                 listForGui.addAll(filesLocal);
-                listForGui.addAll(filesServer);
+                for(FileEntry fs : filesServer){
+                    boolean both = false;
+                    for(FileEntry fg : listForGui){
+                        if(fg.getFilename().matches(fs.getFilename())){
+                            //is both local and server
+                            fs.setStatus("local+server");
+                            both = true;
+                            break;
+                        }
+                    }
+                    if(!both)listForGui.add(fs);
+                }
+                //listForGui.addAll(filesServer);
 
                 //send list to gui
                 c.updateFiles(listForGui);
@@ -177,46 +128,28 @@ class ClientThread {
                 ArrayList<FileEntry> downloadList = getDownloadList();
                 ArrayList<FileEntry> uploadList = getUploadList();
 
-                System.out.print("filesLocal: ");
-                for(FileEntry f : filesLocal){
-                    System.out.print(f.getFilename() + ", ");
-                }
-                System.out.println();
-                System.out.print("filesServer : ");
-                for(FileEntry f : filesServer){
-                    System.out.print(f.getFilename() + ", ");
-                }
-                System.out.println();
-                System.out.print("listForGui : ");
-                for(FileEntry f : listForGui){
-                    System.out.print(f.getFilename() + ", ");
-                }
-                System.out.println();
+                printList(filesLocal, "filesLocal");
+                printList(filesServer, "filesServer");
+                printList(listForGui, "listForGui");
 
-
-                /*
-                if(downloadList.size() > 0){
-                    //create threads to download them
-                    download(downloadList);
-                    //wait to finish downloading
-                    //add entries to filesLocal
-                    filesLocal.addAll(downloadList);
+                if(n <= 0){
+                    n = 5;
+                    if(downloadList.size() > 0){
+                        printList(downloadList, "downloadList");
+                        download(downloadList);
+                    }
+                    if(uploadList.size() > 0){
+                        printList(uploadList, "uploadList");
+                        upload(uploadList);
+                    }
                 }
-                if(uploadList.size() > 0){
-                    //create threads to upload them
-                    upload(uploadList);
-                    //wait to finish uploading
-                    //add entries to filesServer
-                    filesServer.addAll(uploadList);
-                }
-                */
+                System.out.println("-------------------------------------------------- "+n);
                 try{
                     Thread.sleep(waitTime * 1000);
-                }catch(InterruptedException e){
-
-                }
+                }catch(InterruptedException e){}
 
             }
+            logout();
             closeSocket();
             System.out.println("BG thread ended");
         }
@@ -224,35 +157,52 @@ class ClientThread {
             loop = false;
             t.interrupt();
         }
+        private void printList(ArrayList<FileEntry> list, String name){
+            System.out.print(name + "{"+list.size()+"} : ");
+            for(FileEntry f : list){
+                System.out.print(f.getFilename() + ":" +f.getStatus() + ":"+f.getOthers()+", ");
+            }
+            System.out.println();
+        }
         private void createSocket(){
-            do {
-                if(!loop)break;
+            //do {
+                //if(!loop)break;
                 try {
                     socket = new Socket(ip, port);
                 } catch (Exception e) {
-                    if(!loop)break;
-                    System.out.println("BG> Can't connect to server. Trying again in 10s");
+                    //if(!loop)break;
+                    System.out.println("BG> Can't create socket.");
                     //c.printText("CheckForNewLocalFiles> Can't connect to server. Trying again in 10s");
-                    try {
-                        Thread.sleep(10000);
-                    } catch (InterruptedException ie) {
-                        if(!loop)break;
-                    }
+
                 }
-            } while (socket == null);
-            try {
-                out = new PrintWriter(socket.getOutputStream(), true);
-            } catch (IOException e) {
-                System.out.println("BG> IOException: failed to get output stream from server");
+            //} while (socket == null);
+            if(socket != null){
+                try {
+                    out = new PrintWriter(socket.getOutputStream(), true);
+                } catch (IOException e) {
+                    System.out.println("BG> Failed to get output stream from server");
+                }
             }
         }
         private void closeSocket(){
-            out.println("exit");
-            try{
-                socket.close();
-            }catch(Exception e){
+            if(socket != null){
+                out.println("exit");
+                try{
+                    socket.close();
+                }catch(Exception e){
 
+                }
             }
+        }
+        private boolean login(){
+            if(socket == null)return false;
+            out.println("login "+username);
+            return true;
+        }
+        private boolean logout(){
+            if(socket == null)return false;
+            out.println("logout "+username);
+            return true;
         }
         private ArrayList<FileEntry> getFilesHdd(){
             File folder = new File(localFolder);
@@ -277,6 +227,8 @@ class ClientThread {
         }
         private ArrayList<FileEntry> getFilesServer(){
             ArrayList<FileEntry> list = new ArrayList<>();
+            if(socket == null)
+                return list;
             out.println("list " + username);
             try {
                 ObjectInputStream objectInput = new ObjectInputStream(socket.getInputStream()); //Error Line!
@@ -319,66 +271,263 @@ class ClientThread {
             }
             return list;
         }
+        public void awaitTerminationAfterShutdown(ExecutorService threadPool) {
+            threadPool.shutdown();
+            try {
+                if (!threadPool.awaitTermination(60, TimeUnit.SECONDS)) {
+                    threadPool.shutdownNow();
+                }
+            } catch (InterruptedException ex) {
+                threadPool.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
         private int download(ArrayList<FileEntry> list){
+            if(socket == null)return -1;
             int n = list.size();
-            System.out.println("Updater> files to download:"+list);
+            System.out.println("download> files to download:"+list);
             //create thread pool
             ExecutorService poolDownload = Executors.newFixedThreadPool(n);
-            System.out.println("Updater> Downloading "+n+" files ...");
+            System.out.println("download> Downloading "+n+" files ...");
             //c.printText("Updater> Downloading new files ...");
             Iterator<FileEntry> i = list.iterator();
-            List<Callable<Object>> todo = new ArrayList<>(n);
+            //List<Callable<Object>> todo = new ArrayList<>(n);
             while (i.hasNext()) {
                 FileEntry f = i.next();
-                poolDownload.execute(new ClientThread.FileDownloaderClass(c, ip, port, f.getFilename(), localFolder));
-                f.setStatus("local+server");
+                poolDownload.execute(new ClientThread.FileDownloadClass(c, ip, port, username, f.getFilename(), localFolder));
+                f.setStatus("local+server");//probs wont work :(
                 try{
                     t.sleep(100);
                 }catch(InterruptedException e){
 
                 }
             }
-            System.out.println("Updater> Waiting for "+n+" files to download ... ");
-            try {
-                //poolUpload.awaitTermination(600, TimeUnit.SECONDS);
-                List<Future<Object>> answers = poolDownload.invokeAll(todo);
-            } catch (InterruptedException e) {
-
-            }
-            System.out.println("Updater> Downloaded "+n+" files!");
+            System.out.println("download> Waiting for "+n+" files to download ... ");
+            awaitTerminationAfterShutdown(poolDownload);
+            System.out.println("download> Downloaded "+n+" files!");
             return n;
         }
         private int upload(ArrayList<FileEntry> list){
+            if(socket == null)return -1;
             int n = list.size();
-            System.out.println("Updater> files to upload:"+list);
+            System.out.println("upload> files to upload:"+list);
             //create thread pool
-            ExecutorService poolDownload = Executors.newFixedThreadPool(n);
-            System.out.println("Updater> uploading "+n+" files ...");
+            ExecutorService poolUpload = Executors.newFixedThreadPool(n);
+            System.out.println("upload> uploading "+n+" files ...");
             //c.printText("Updater> Downloading new files ...");
             Iterator<FileEntry> i = list.iterator();
             List<Callable<Object>> todo = new ArrayList<>(n);
             while (i.hasNext()) {
                 FileEntry f = i.next();
-                poolDownload.execute(new ClientThread.FileSenderClass(c, ip, port, f.getFilename(), localFolder, username));
-                f.setStatus("local+server");
+                poolUpload.execute(new ClientThread.FileUploadClass(c, ip, port, f.getFilename(), localFolder, username));
+                f.setStatus("local+server");//probs wont work :(
                 try{
                     t.sleep(100);
                 }catch(InterruptedException e){
 
                 }
             }
-            System.out.println("Updater> Waiting for "+n+" files to upload ... ");
-            try {
-                //poolUpload.awaitTermination(600, TimeUnit.SECONDS);
-                List<Future<Object>> answers = poolDownload.invokeAll(todo);
-            } catch (InterruptedException e) {
-
-            }
-            System.out.println("Updater> uploaded "+n+" files!");
+            System.out.println("upload> Waiting for "+n+" files to upload ... ");
+            awaitTerminationAfterShutdown(poolUpload);
+            System.out.println("upload> uploaded "+n+" files!");
             return n;
         }
 
     }
+
+
+    static class FileDownloadClass implements Runnable{
+        private Thread t;
+        private String filename;
+        private String ip;
+        private int port;
+        private String destination, username;
+        private Controller c;
+        FileDownloadClass(Controller c, String ip, int port, String username, String fn, String dest) {
+            this.ip = ip;
+            this.port = port;
+            filename = fn;
+            destination = dest;
+            this.username = username;
+            this.c = c;
+            //this.start();
+            if (t == null) {
+                t = new Thread (this);
+                //t.start ();
+            }
+        }
+        public void run(){
+            System.out.println(t.getId() + "\\" +filename + " downloader thread start");
+            Socket socketFile = null;
+            do{
+                try{
+                    socketFile = new Socket(ip, port);
+                }catch(Exception e){
+                    System.out.println(t.getId() + "\\" +filename + " Can't connect to server. Trying again in 1s");
+                    try{
+                        Thread.sleep(1000);
+                    }catch(InterruptedException ie){
+                    }
+                }
+            }while(socketFile == null);
+
+            PrintWriter out = null;
+            Scanner in = null;
+            try{
+                out = new PrintWriter(socketFile.getOutputStream(), true);
+                in = new Scanner(socketFile.getInputStream());
+            }catch (IOException e){
+                System.out.println("IOException: failed to get output stream from server");
+            }
+            //File f = new File(destination+"\\"+filename);
+
+            out.println("getfile " + filename + " " + username);
+            int size = Integer.parseInt(in.nextLine());
+
+            System.out.println(t.getId() + "\\" +filename+ " Downloading "+size+"B to "+destination+" ... ");
+            c.printText("Downloading "+filename+" ("+size+"B) ... ");
+            try {
+                DataInputStream dis = new DataInputStream(socketFile.getInputStream());
+                FileOutputStream fos = new FileOutputStream(destination+"\\"+filename);
+                byte[] buffer = new byte[1024*64];
+                int filesize = size;
+                int read = 0;
+                int totalRead = 0;
+                int remaining = filesize;
+                while((read = dis.read(buffer, 0, Math.min(buffer.length, remaining))) > 0 && remaining > 0) {
+                    totalRead += read;
+                    remaining -= read;
+                    //System.out.println("read " + totalRead + " bytes.");
+                    fos.write(buffer, 0, read);
+                }
+                System.out.println(filename+ " read " + totalRead + "B of "+ size);
+                out.println("received " + filename);
+                try {
+                    Thread.sleep(ThreadLocalRandom.current().nextInt(2000, 10000));
+                }catch(Exception e){}
+
+                if(socketFile.isClosed()){
+                    System.out.println(filename + " socket closed");
+                }else{
+                    fos.close();
+                    dis.close();
+                }
+            }catch(Exception e){
+                System.out.println("Exception in FileDownloaderClass : " + e.getMessage());
+            }
+            try{
+                socketFile.close();
+            }catch(IOException e){
+                System.out.println("socketFile: failed to close");
+            }
+            c.printText("file \""+ filename +"\" downloaded");
+            System.out.println("file \""+ filename +"\" downloaded");
+
+        }
+        /*public void start(){
+            if (t == null) {
+                t = new Thread (this);
+                t.start ();
+            }
+        }*/
+    }
+    static class FileUploadClass implements Runnable{
+        public Thread t;
+        String filename, localFolder, username;
+        String ip;
+        int port;
+        Controller c;
+        FileUploadClass(Controller c, String i, int p, String fn, String localFolder, String username) {
+            ip = i;
+            port = p;
+            filename = fn;
+            this.c = c;
+            this.localFolder = localFolder;
+            this.username = username;
+            //this.start();
+            if (t == null) {
+                t = new Thread (this);
+                //t.start ();
+            }
+        }
+        public void run(){
+            System.out.println(t.getId() + "\\" +filename + " sender thread start");
+            Socket socketFile = null;
+            do{
+                try{
+                    socketFile = new Socket(ip, port);
+                }catch(Exception e){
+                    System.out.println("socketFile : Can't connect to server. Trying again in 1s");
+                    try{
+                        Thread.sleep(1000);
+                    }catch(InterruptedException ie){}
+                }
+            }while(socketFile == null);
+            PrintWriter out = null;
+            Scanner in = null;
+            try{
+                out = new PrintWriter(socketFile.getOutputStream(), true);
+                in = new Scanner(socketFile.getInputStream());
+            }catch (IOException e){
+                System.out.println(t.getId() + "\\" +"IOException: failed to get output stream from server");
+            }
+            File f = new File(localFolder + "\\" +filename);
+            int fsize = (int)f.length();
+
+            //out.close();
+            c.printText("Sending file: " + filename +" ("+ fsize + "B) ...");
+            System.out.println("file " + filename + " " + fsize + " " + username);
+            out.println("file " + filename + " " + fsize + " " + username);
+            DataOutputStream dos;
+            FileInputStream fis;
+            try {
+                dos = new DataOutputStream(socketFile.getOutputStream());
+                fis = new FileInputStream(localFolder + "\\" +filename);
+
+                byte[] buffer = new byte[1024*64];
+                while (fis.read(buffer) > 0) {
+                    dos.write(buffer);
+                }
+                try {
+                    Thread.sleep(10000);
+                }catch(Exception e){}
+
+                System.out.println(t.getId() + "\\" +filename + " waiting for confirmation from server ... ");
+                //if(in.hasNextLine()){
+                //out.println("sent");
+                System.out.println(t.getId() + "\\" +filename + " server: "+in.nextLine());
+                if(socketFile.isClosed()){
+                    System.out.println(filename + " socket closed");
+                }else{
+                    fis.close();
+                    dos.close();
+                }
+
+                c.printText("File "+ filename +" sent to server!");
+                c.setFileStatus(filename, true);
+
+            }catch(Exception e){
+                System.out.println(t.getId() + "\\" +"Exception in FileSenderClass : " + e.getMessage());
+            }
+            //
+            try{
+                Thread.sleep(ThreadLocalRandom.current().nextInt(2000, 10000));
+            }catch(InterruptedException e){}
+            try{
+                socketFile.close();
+            }catch(IOException e){
+                System.out.println(t.getId() + "\\" +"socketFile: failed to close");
+            }
+            System.out.println(t.getId() + "\\" +filename + " sender thread stop");
+        }
+        /*public void start(){
+            if (t == null) {
+                t = new Thread (this);
+                t.start ();
+            }
+        }*/
+    }
+}
 /*
     static class CheckForNewLocalFiles implements Runnable{
         private Thread t;
@@ -709,192 +858,3 @@ class ClientThread {
 
 
     */
-
-    static class FileDownloaderClass implements Runnable{
-        private Thread t;
-        String filename;
-        String ip;
-        int port;
-        String destination;
-        Controller c;
-        FileDownloaderClass(Controller c, String ip, int port, String fn, String dest) {
-            this.ip = ip;
-            this.port = port;
-            filename = fn;
-            destination = dest;
-            this.c = c;
-            //this.start();
-            if (t == null) {
-                t = new Thread (this);
-                //t.start ();
-            }
-        }
-        public void run(){
-            System.out.println(t.getId() + "\\" +filename + " downloader thread start");
-            Socket socketFile = null;
-            do{
-                try{
-                    socketFile = new Socket(ip, port);
-                }catch(Exception e){
-                    System.out.println(t.getId() + "\\" +filename + " Can't connect to server. Trying again in 1s");
-                    try{
-                        Thread.sleep(1000);
-                    }catch(InterruptedException ie){
-                    }
-                }
-            }while(socketFile == null);
-
-            PrintWriter out = null;
-            Scanner in = null;
-            try{
-                out = new PrintWriter(socketFile.getOutputStream(), true);
-                in = new Scanner(socketFile.getInputStream());
-            }catch (IOException e){
-                System.out.println("IOException: failed to get output stream from server");
-            }
-            //File f = new File(destination+"\\"+filename);
-
-            out.println("getfile " + filename);
-            int size = Integer.parseInt(in.nextLine());
-
-            System.out.println(t.getId() + "\\" +filename+ " Downloading "+size+"B to "+destination+" ... ");
-            c.printText("Downloading "+filename+" ("+size+"B) ... ");
-            try {
-                DataInputStream dis = new DataInputStream(socketFile.getInputStream());
-                FileOutputStream fos = new FileOutputStream(destination+"\\"+filename);
-                byte[] buffer = new byte[1024*64];
-                int filesize = size;
-                int read = 0;
-                int totalRead = 0;
-                int remaining = filesize;
-                while((read = dis.read(buffer, 0, Math.min(buffer.length, remaining))) > 0 && remaining > 0) {
-                    totalRead += read;
-                    remaining -= read;
-                    //System.out.println("read " + totalRead + " bytes.");
-                    fos.write(buffer, 0, read);
-                }
-                System.out.println(filename+ " read " + totalRead + "B of "+ size);
-                out.println("received " + filename);
-                try {
-                    Thread.sleep(1000);
-                }catch(Exception e){}
-
-                if(socketFile.isClosed()){
-                    System.out.println(filename + " socket closed");
-                }else{
-                    fos.close();
-                    dis.close();
-                }
-            }catch(Exception e){
-                System.out.println("Exception in FileDownloaderClass : " + e.getMessage());
-            }
-            try{
-                socketFile.close();
-            }catch(IOException e){
-                System.out.println("socketFile: failed to close");
-            }
-            System.out.println("file \""+ filename +"\" downloaded");
-            c.printText("file \""+ filename +"\" downloaded");
-        }
-        /*public void start(){
-            if (t == null) {
-                t = new Thread (this);
-                t.start ();
-            }
-        }*/
-    }
-    static class FileSenderClass implements Runnable{
-        public Thread t;
-        String filename, localFolder, username;
-        String ip;
-        int port;
-        Controller c;
-        FileSenderClass(Controller c, String i, int p, String fn, String localFolder, String username) {
-            ip = i;
-            port = p;
-            filename = fn;
-            this.c = c;
-            this.localFolder = localFolder;
-            this.username = username;
-            //this.start();
-            if (t == null) {
-                t = new Thread (this);
-                //t.start ();
-            }
-        }
-        public void run(){
-            System.out.println(t.getId() + "\\" +filename + " sender thread start");
-            Socket socketFile = null;
-            do{
-                try{
-                    socketFile = new Socket(ip, port);
-                }catch(Exception e){
-                    System.out.println("socketFile : Can't connect to server. Trying again in 1s");
-                    try{
-                        Thread.sleep(1000);
-                    }catch(InterruptedException ie){}
-                }
-            }while(socketFile == null);
-            PrintWriter out = null;
-            Scanner in = null;
-            try{
-                out = new PrintWriter(socketFile.getOutputStream(), true);
-                in = new Scanner(socketFile.getInputStream());
-            }catch (IOException e){
-                System.out.println(t.getId() + "\\" +"IOException: failed to get output stream from server");
-            }
-            File f = new File(localFolder + "\\" +filename);
-            int fsize = (int)f.length();
-
-            //out.close();
-            c.printText("Sending file: " + filename +" ("+ fsize + "B) ...");
-            System.out.println("file " + filename + " " + fsize + " " + username);
-            out.println("file " + filename + " " + fsize + " " + username);
-            DataOutputStream dos;
-            FileInputStream fis;
-            try {
-                dos = new DataOutputStream(socketFile.getOutputStream());
-                fis = new FileInputStream(localFolder + "\\" +filename);
-
-                byte[] buffer = new byte[1024*64];
-                while (fis.read(buffer) > 0) {
-                    dos.write(buffer);
-                }
-                try {
-                    Thread.sleep(1000);
-                }catch(Exception e){}
-
-                System.out.println(t.getId() + "\\" +filename + " waiting for confirmation from server ... ");
-                //if(in.hasNextLine()){
-                //out.println("sent");
-                System.out.println(t.getId() + "\\" +filename + " server: "+in.nextLine());
-                if(socketFile.isClosed()){
-                    System.out.println(filename + " socket closed");
-                }else{
-                    fis.close();
-                    dos.close();
-                }
-
-                c.printText("File "+ filename +" sent to server!");
-                c.setFileStatus(filename, true);
-
-            }catch(Exception e){
-                System.out.println(t.getId() + "\\" +"Exception in FileSenderClass : " + e.getMessage());
-            }
-            //
-
-            try{
-                socketFile.close();
-            }catch(IOException e){
-                System.out.println(t.getId() + "\\" +"socketFile: failed to close");
-            }
-            System.out.println(t.getId() + "\\" +filename + " sender thread stop");
-        }
-        /*public void start(){
-            if (t == null) {
-                t = new Thread (this);
-                t.start ();
-            }
-        }*/
-    }
-}

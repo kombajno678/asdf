@@ -1,3 +1,7 @@
+/*
+todo: what if file is in csv but not on hdd?
+ */
+
 package server;
 
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
@@ -477,11 +481,13 @@ class Connection implements Runnable{
     private Socket socket;
     private ServerThread server;
 
-    private String fileNameRegex = "[\\w.-_()']+\\.[A-Za-z0-9]+";
+    private String fileNameRegex = "[\\w-_()'.]+\\.[A-Za-z0-9]+";
     private String fileSizeRegex = "[\\d]+";
     private String userRegex = "[\\w-_]+";
 
     ArrayList<String> hddPaths;
+
+    private int n = 0;
 
     Connection(Socket socket, ServerThread server){
         this.socket = socket;
@@ -492,19 +498,19 @@ class Connection implements Runnable{
             t = new Thread(this);
             //t.start();
         }
-        System.out.println(socket.getPort() + "> Connection thread started");
+        printMsg("Connection thread started");
     }
 
     @Override
     public void run() {
-        int n = 0;
-        System.out.println(socket.getPort() +File.separator+ t.getId() + File.separator+n+ "> Has connected to server");n++;
+
+        printMsg("Has connected to server");
 
         PrintWriter out = null;
         try{
             out = new PrintWriter(socket.getOutputStream(), true);
         }catch (IOException e){
-            System.out.println(socket.getPort() +File.separator+ t.getId() + File.separator+n+ "> IOException: failed to get output stream from client");n++;
+            printMsg("IOException: failed to get output stream from client");
         }
         //-----------------------------------------LISTENER LOOP--------------------------------------------------------
 
@@ -526,7 +532,7 @@ class Connection implements Runnable{
                 }
                 if(in.hasNextLine()) {
                     String temp = in.nextLine();
-                    //System.out.println(socket.getPort() +File.separator+ t.getId() +File.separator+n+ "> " + temp);n++;
+                    //printMsg("temp);
                     if(temp.matches("file "+fileNameRegex+" "+fileSizeRegex+" "+userRegex)){
                         //------------------------------------------------------------------user sends file
                         int hddNo = 0;//hardcoded for now
@@ -539,9 +545,9 @@ class Connection implements Runnable{
                         //add entry to global file list
                         server.getFilesList().add(new FileEntry(filename, hddNo, path, filesize, username));
 
-                        System.out.println(socket.getPort() +File.separator+ t.getId() +File.separator+n+">receiving file : " + filename + " from: " + username);n++;
+                        printMsg("receiving file : " + filename + " from: " + username);
                         try {
-                            //System.out.println(socket.getPort() +File.separator+ t.getId() + File.separator+n+"> " + filename + " client: "+in.nextLine());
+                            //printMsg(filename + " client: "+in.nextLine());
                             DataInputStream dis = new DataInputStream(input);
                             FileOutputStream fos = new FileOutputStream(path);
                             byte[] buffer = new byte[1024*64];
@@ -551,10 +557,10 @@ class Connection implements Runnable{
                             while((read = dis.read(buffer, 0, Math.min(buffer.length, remaining))) > 0 && remaining > 0) {
                                 totalRead += read;
                                 remaining -= read;
-                                //System.out.println(socket.getPort() +File.separator+ t.getId() + File.separator+n+"> " + filename + " remaining " + remaining);n++;
+                                //printMsg(filename + " remaining " + remaining);
                                 fos.write(buffer, 0, read);
                             }
-                            System.out.println(socket.getPort() +File.separator+ t.getId() + File.separator+n+"> " + filename + " read " + totalRead + " of " + filesize);n++;
+                            printMsg(filename + " read " + totalRead + " of " + filesize);
                             out.println("received " + filename);
 
                             try {
@@ -565,7 +571,7 @@ class Connection implements Runnable{
                         }catch(Exception e){
                             System.out.println("Exception in FileReceiverClass : " + e.getMessage());
                         }
-                        System.out.println(socket.getPort() +File.separator+ t.getId() + File.separator+n+ "> file "+ filename +" saved");n++;
+                        printMsg("file "+ filename +" saved");
 
 
 
@@ -577,31 +583,38 @@ class Connection implements Runnable{
                         String username = a[1];
                         //get list of files user has rights to
                         ArrayList<FileEntry> userFilesList = server.getUserFilesList(username);
-                        System.out.println("userFilesList["+username+"] : " + userFilesList);
+                        printMsg("userFilesList["+username+"] : " + userFilesList);
                         ObjectOutputStream objectOutput = null;
                         try {
                             objectOutput = new ObjectOutputStream(socket.getOutputStream());
                         }catch(IOException e){
-                            System.out.println(socket.getPort() +File.separator+ t.getId() + File.separator+n+
-                                    ">list socket.getOutputStream: " + e.getMessage() + " " + e.getCause());n++;
+                            printMsg("list socket.getOutputStream: " + e.getMessage() + " " + e.getCause());
                         }
                         try{
                             objectOutput.writeObject(userFilesList);
                         } catch (IOException e) {
-                            System.out.println(socket.getPort() +File.separator+ t.getId() + File.separator+n+
-                                    ">list objectOutput.writeObject: " + e.getMessage() + " " + e.getCause());n++;
+                            printMsg("list objectOutput.writeObject: " + e.getMessage() + " " + e.getCause());
                         }
                     }else
-                    if(temp.matches("getfile "+fileNameRegex)){
+                    if(temp.matches("getfile "+fileNameRegex + " " + userRegex)){
                         String[] a = temp.split(" ");
                         //System.out.println("a0: " + a[0]);
                         //System.out.println("a1: " + a[1]);//filename
                         String filename = a[1];
-                        String filePath = hddPaths.get(0)+File.separator+File.separator+filename;
+                        String username = a[2];
+                        //get fileentry
+                        String path = "";
+                        for(FileEntry f : server.getFilesList()){
+                            if(f.getFilename().matches(filename)){
+                                path = f.getPath();
+                                break;
+                            }
+                        }
+                        String filePath = path;
                         File f = new File(filePath);
                         int size = (int)f.length();
                         out.println(size);
-                        System.out.println(socket.getPort() +File.separator+ t.getId() + "> sending "+filename+"("+size+" B) ...");
+                        printMsg("sending "+filename+"("+size+" B) to"+username+" ...");
                         DataOutputStream dos;
                         FileInputStream fis;
                         try {
@@ -615,8 +628,8 @@ class Connection implements Runnable{
                             try {
                                 Thread.sleep(1000);
                             }catch(Exception e){}
-                            System.out.println(t.getId() + File.separator +filename + " waiting for confirmation from client ... ");
-                            System.out.println(t.getId() + File.separator +filename + " client: "+in.nextLine());
+                            printMsg("waiting for confirmation from client ... ");
+                            printMsg("client: "+in.nextLine());
                             if(socket.isClosed()){
                                 System.out.println(filename + " socket closed");
                             }else{
@@ -625,9 +638,9 @@ class Connection implements Runnable{
                             }
 
                         }catch(Exception e){
-                            System.out.println(socket.getPort() +File.separator+ t.getId() +  "> Exception while sending file : " + e.getMessage());
+                            printMsg("Exception while sending file : " + e.getMessage());
                         }
-                        System.out.println(socket.getPort() +File.separator+ t.getId() + "> sent "+filename + " to client");
+                        printMsg("sent "+filename + " to client");
                         break;
                     }else
                     if(temp.matches("delete "+fileNameRegex)){
@@ -653,18 +666,18 @@ class Connection implements Runnable{
                         if(logFlag)
                             server.getUsersOnline().add(a[1]);
 
-                        System.out.println(socket.getPort() +File.separator+ t.getId() + File.separator+n+"> User " + a[1] + " has logged in");n++;
+                        printMsg("User " + a[1] + " has logged in");
                     }else
                     if(temp.matches("logout "+userRegex)){
                         //user logout
                         String[] a = temp.split(" ");
                         for(Iterator<String> i = server.getUsersOnline().iterator();i.hasNext();){
                             if(i.next().matches(a[1])){
-                                server.getUsersOnline().remove(i);
+                                i.remove();
                                 break;
                             }
                         }
-                        System.out.println(socket.getPort() +File.separator+ t.getId() + File.separator+n+"> User " + a[1] + " has logged out");n++;
+                        printMsg("User " + a[1] + " has logged out");
                         break;
                     }else
                         /*
@@ -684,7 +697,7 @@ class Connection implements Runnable{
                         //loop = false;
                         break;
                     }else {
-                        System.out.println(socket.getPort() +File.separator+ t.getId() + " <no match> ");
+                        printMsg("no match for : " + temp);
                     }
                 }
             }
@@ -699,9 +712,9 @@ class Connection implements Runnable{
         try{
             socket.close();
         }catch(IOException e){
-            System.out.println(socket.getPort() +File.separator+ t.getId() + "> exception while closing socket: "+e.getMessage());
+            printMsg("exception while closing socket: "+e.getMessage());
         }finally{
-            System.out.println(socket.getPort() +File.separator+ t.getId() + "> CLOSED ");
+            printMsg("CLOSED ");
         }
     }
     public static ArrayList<String> listFilesForFolder(final File folder) {
@@ -714,5 +727,9 @@ class Connection implements Runnable{
             }
         }
         return list;
+    }
+     private void printMsg(String msg){
+        System.out.println(socket.getPort() +File.separator+ t.getId() + "> "+msg);
+        n++;
     }
 }
