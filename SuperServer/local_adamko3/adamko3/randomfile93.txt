@@ -1,0 +1,74 @@
+Transformacja
+stosowane do wykonywania ruchu ciał sztywnych, w którym obiekt może zostać przeniesiony z jednego miejsca do drugiego bez zmiany jego kształtu i wielkości
+np: przekształcenie, obrót i odbicia
+or: ścinanie, skalowanie i przekształcanie 
+
+Transformacja geometryczna może być traktowana
+jako przekształcenie pomiędzy zbiorami punktów.
+Najczęściej spotykaną jest transformacja wyłączna
+jeden do jednego.
+Dla tej transformacji każdy punkt ma swoją
+reprezentację w zbiorze przekształconym oraz
+wszystkie punkty w zbiorze przekształconym mają
+swoją reprezentację w zbiorze pierwotnym. Dla
+takiego przekształcenia możliwe jest przekształcenie
+odwrotne. Możliwe są jednak transformacje nie
+spełniające tych wymogów
+
+Możemy przedstawić przesunięcie podobnie
+jak obrót w postaci iloczynu macierzowego
+Jak widać wektor pozycji musi być uzupełniony
+o sztuczny parametr równy 1.
+1 0 p   x   x+p
+0 1 q * y = y+p
+0 0 1   1    1
+Taki zapis współrzędnych nosi nazwę
+współrzędnych jednorodnych.
+Współrzędne jednorodne to sposób
+reprezentacji punktów n-wymiarowych za
+pomocą n+1 współrzędnych. Współrzędne
+jednorodne zostały wprowadzone do geometrii
+w 1827 przez Augusta Möbiusa w pracy Der
+barycentrische Calcul.
+
+obrót
+cos -sin 0
+sin  cos 0
+ 0    0  1
+ 
+odbicie
+wzgledem x
+1 0 0
+0-1 0
+0 0 1
+wzgledem y
+-1 0 0
+ 0 1 0
+ 0 0 1
+ 
+Deformacje – skalowanie i wyciąganie
+Skalowanie:
+Punkt P(x,y,1) należący do obiektu S może być skalowany
+do nowego położenia P*(x*,y*,1) z zastosowaniem
+współczynników μx i μy tak że
+W postaci macierzowej
+u 0 0   x
+0 u 0 * y
+0 0 1   1
+Gdzie S jest macierzą skalowania
+
+Transformacje w 3D
+Przykład:
+Obracając punkt P wokół osi L określonej przez wektor
+kierunkowy n =[nx ny nz 0] przechodzącej przez punkt A [p
+q r 1] możemy zaobserwować, że P i jego nowe położenie
+P* będą leżeć na płaszczyźnie prostopadłej do L i
+płaszczyzna ta przetnie L w punkcie Q.
+
+
+Rzutowanie to przekształcenia punktów z n wymiarowej
+przestrzeni, do przestrzeni o wymiarze mniejszym niż n
+najczęściej 3D do 2D.
+Podstawowe rodzaje rzutowania to rzutowanie planarne (zwane
+również równoległym) oraz rzutowanie perspektywiczne
+(prostokątne).

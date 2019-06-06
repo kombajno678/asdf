@@ -1,27 +1,13 @@
 package server;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
-
-import java.io.*;
-import java.util.*;
-import java.util.ArrayList;
-import java.util.concurrent.*;
-import java.net.Socket;
-import java.net.ServerSocket;
-import java.util.Scanner;
-
-import java.io.IOException;
-import java.io.BufferedOutputStream;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.io.FileOutputStream;
 
 public class ServerMain extends Application {
     public static void main(String[] args) {
@@ -29,9 +15,24 @@ public class ServerMain extends Application {
     }
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("server_window.fxml"));
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("server_window.fxml"));
+
+        //Parent root = FXMLLoader.load(getClass().getResource("server_window.fxml"));
+        Parent root = loader.load();
+        Controller controller = loader.getController();
         primaryStage.setTitle("SuperServer");
         primaryStage.setScene(new Scene(root, 800, 600));
+        primaryStage.setOnCloseRequest(e -> {
+            e.consume();
+            //if dialogbox true
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Do wou want to close server?", ButtonType.YES, ButtonType.NO);
+            alert.showAndWait();
+            if (alert.getResult() == ButtonType.YES) {
+                controller.shutdown();
+                Platform.exit();
+            }
+        });
         primaryStage.show();
     }
 }

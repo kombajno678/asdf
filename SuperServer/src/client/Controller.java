@@ -16,6 +16,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -46,21 +48,37 @@ public class Controller {
 
     @FXML
     private void initialize(){
+        buttonConnect.setDisable(false);
+        inputUsername.setDisable(false);
+        inputPath.setDisable(false);
+        inputIP.setDisable(false);
+        inputPort.setDisable(false);
+        inputUsername.setDisable(false);
+
+        tableFiles.setDisable(true);
+        buttonDisconnect.setDisable(true);
+        buttonClear.setDisable(true);
+        textConsole.setDisable(true);
+
         columnNames.setCellValueFactory(new PropertyValueFactory<>("filename"));
         columnSize.setCellValueFactory(new PropertyValueFactory<>("size"));
+        columnOwner.setCellValueFactory(new PropertyValueFactory<>("owner"));
         columnShared.setCellValueFactory(new PropertyValueFactory<>("others"));
         columnStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
-
     }
 
     @FXML
     private Label textBotLeft;
     @FXML
+    private Label labelFiles;
+    @FXML
     private Label textBotRight;
     @FXML
     private Button buttonDelete;
     @FXML
-    private ToggleButton SyncButton;
+    private Button buttonShare;
+    @FXML
+    private Button buttonUnshare;
     @FXML
     private TableView<FileEntry> tableFiles;
     @FXML
@@ -68,13 +86,13 @@ public class Controller {
     @FXML
     private TableColumn<FileEntry, String> columnSize;
     @FXML
+    private TableColumn<FileEntry, String> columnOwner;
+    @FXML
     private TableColumn<FileEntry, String> columnShared;
     @FXML
     private TableColumn<FileEntry, String> columnStatus;
     @FXML
     public TextArea textConsole;
-    @FXML
-    private Button buttonShare;
     @FXML
     private TextField inputUsername;
     @FXML
@@ -94,7 +112,7 @@ public class Controller {
         boolean validFlag = false;
         try {
             username = inputUsername.getText();
-            localFolder = inputPath.getText() + "\\" + username;
+            localFolder = inputPath.getText();
             ip = inputIP.getText();
             port = Integer.parseInt(inputPort.getText());
             validFlag = true;
@@ -102,7 +120,7 @@ public class Controller {
             validFlag = false;
         }
         if(validFlag){
-
+            clearFiles();
             //login = new ClientThread.Login(ip, port,username);
             bg = new ClientThread.BackgroundTasks(localFolder, username, ip, port, this);
 
@@ -124,11 +142,12 @@ public class Controller {
             tableFiles.setDisable(false);
             buttonDisconnect.setDisable(false);
             buttonClear.setDisable(false);
+            buttonShare.setDisable(false);
+            buttonUnshare.setDisable(false);
 
             textConsole.setDisable(false);
             textConsole.setText("Connecting to " + ip + "... ");
 
-            syncFlag = SyncButton.isPressed();
         }
 
     }
@@ -147,17 +166,37 @@ public class Controller {
         tableFiles.setDisable(true);
         buttonDisconnect.setDisable(true);
         buttonClear.setDisable(true);
+        buttonShare.setDisable(true);
+        buttonUnshare.setDisable(true);
         textConsole.setDisable(true);
-        clearFiles();
-    }
 
+    }
+    public void Share(){
+        //TablePosition temp = tableFiles.getFocusModel().getFocusedCell();
+        FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
+        //file : selected file on list
+        Platform.runLater(() -> printText("share : " + file));
+        if(file.getOwner().equals(username)){
+            bg.share(file);
+        }
+    }
+    public void Unshare(){
+        //TablePosition temp = tableFiles.getFocusModel().getFocusedCell();
+        FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
+        //file : selected file on list
+        Platform.runLater(() -> printText("unshare : " + file));
+        if(file.getOwner().equals(username)){
+            bg.unshare(file);
+        }
+    }
     public void Clear(){
         textConsole.clear();
     }
     public void printText(String a){
+
         try {
             Platform.runLater(() -> {
-                textConsole.setText(textConsole.getText() + "\n" + a);
+                textConsole.setText(textConsole.getText() + "\n" + a + "\n");
                 textConsole.setScrollTop(Double.MAX_VALUE);
             });
         }catch(Exception e){
@@ -190,19 +229,6 @@ public class Controller {
             listForGui.add(fe);
         }
 
-        System.out.println("listForGui: ");
-        for(FileEntry fe : listForGui){
-            System.out.println(" " + fe.getFilename() +" : "+fe.getStatus());
-        }
-        System.out.println();
-
-
-        System.out.println("tableFiles: ");
-        for(FileEntry fe : tableFiles.getItems()){
-            System.out.println(" " + fe.getFilename() +" : "+fe.getStatus());
-        }
-        System.out.println();
-
         if(tableFiles.getItems().size() > 0){
             for(Iterator<FileEntry> fGui = tableFiles.getItems().iterator(); fGui.hasNext();){
                 FileEntry fgui = fGui.next();
@@ -211,7 +237,7 @@ public class Controller {
                     FileEntry flist = fList.next();
                     if(fgui.equals2(flist)){
                         //same entry, skip, all good
-                        System.out.println(" " + fgui.getFilename() +" equals " + flist.getFilename());
+                        //System.out.println(" " + fgui.getFilename() +" equals " + flist.getFilename());
                         //later delete from list4gui
                         found = true;
                         fList.remove();
@@ -230,9 +256,8 @@ public class Controller {
         if(listForGui.size() > 0)
             for(FileEntry fnew : listForGui)
                 tableFiles.getItems().addAll(fnew);
-    }
-    public void changeStateSync(){
-        setSyncFlag(SyncButton.isPressed());
+
+        Platform.runLater(() -> labelFiles.setText(""+tableFiles.getItems().size()));
     }
 }
 

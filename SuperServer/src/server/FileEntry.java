@@ -1,13 +1,12 @@
 package server;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class FileEntry implements Serializable {
     private String filename;
     private int hddNo;
-    private String path;
+    private String path;//local folder + owner name + file name
     private String owner;
     private ArrayList<String> others;
     private long size;
@@ -37,6 +36,15 @@ public class FileEntry implements Serializable {
         this.path = path;
         this.size = size;
         this.owner = owner;
+        this.others = new ArrayList<>();
+    }
+    public FileEntry(String filename, int hddNo, String path, long size, String owner, String status) {
+        this.filename = filename;
+        this.hddNo = hddNo;
+        this.path = path;
+        this.size = size;
+        this.owner = owner;
+        this.status = status;
         this.others = new ArrayList<>();
     }
     public FileEntry(String filename, int hddNo, String path, long size, String owner, ArrayList<String> others) {
@@ -93,6 +101,27 @@ public class FileEntry implements Serializable {
             return filename + "," + size + "," + owner + "," + "" + "\n";
     }
 
+    public void share(String userToShare){
+        //add userToShare to others
+        //check if userToShare already exists in others. don't add then
+        for(String u : this.others){
+            if(u.equals(userToShare)){
+                return;
+            }
+        }
+        this.others.add(userToShare);
+    }
+    public void unshare(String userToUnshare){
+        //delete userToUnshare from others
+        for(Iterator<String> i = this.others.iterator();i.hasNext();){
+            String u = i.next();
+            if(u.equals(userToUnshare)){
+                i.remove();
+                return;
+            }
+        }
+    }
+
 
     public boolean equals2(FileEntry f) {
         if(f == null && this != null || f != null && this == null)return false;
@@ -113,10 +142,39 @@ public class FileEntry implements Serializable {
         if(
             this.filename.matches(f.getFilename()) &&
             this.hddNo == f.getHddNo() &&
-            this.path.matches(f.getPath()) &&
             this.owner.matches(f.getOwner()) &&
-            this.others.equals(f.getOthers())
+            this.others.size() == f.getOthers().size()
         ){
+            //check others
+            Collections.sort(this.others);
+            Collections.sort(f.getOthers());
+            for(int i = 0; i < this.others.size();i++){
+                if(!this.others.get(i).equals(f.getOthers().get(i))){
+                    return false;
+                }
+            }
+            /*
+
+            for(String user1 : this.getOthers()){
+                boolean found = false;
+                for(String user2 : f.getOthers()){
+                    if(user1.equals(user2)){
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found)return false;
+            }
+            for(String user1 : f.getOthers()){
+                boolean found = false;
+                for(String user2 : this.getOthers()){
+                    if(user1.equals(user2)){
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found)return false;
+            }*/
             return true;
         }else{
             return false;
