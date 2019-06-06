@@ -153,28 +153,6 @@ public class FileEntry implements Serializable {
                     return false;
                 }
             }
-            /*
-
-            for(String user1 : this.getOthers()){
-                boolean found = false;
-                for(String user2 : f.getOthers()){
-                    if(user1.equals(user2)){
-                        found = true;
-                        break;
-                    }
-                }
-                if(!found)return false;
-            }
-            for(String user1 : f.getOthers()){
-                boolean found = false;
-                for(String user2 : this.getOthers()){
-                    if(user1.equals(user2)){
-                        found = true;
-                        break;
-                    }
-                }
-                if(!found)return false;
-            }*/
             return true;
         }else{
             return false;
