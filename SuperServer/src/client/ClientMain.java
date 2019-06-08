@@ -15,6 +15,7 @@ public class ClientMain extends Application {
         primaryStage.setTitle("SuperClient");
         primaryStage.setScene(new Scene(root, 800, 600));
         primaryStage.show();
+
     }
     public static void main(String[] args) {
         launch(args);

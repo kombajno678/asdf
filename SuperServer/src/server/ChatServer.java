@@ -10,15 +10,7 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ChatServer {
-    public static void main(String[] args){
-        ChatManager cm = new ChatManager();
-        cm.start();
-
-    }
-}
-
-class ChatManager implements Runnable{
+class ChatServer implements Runnable{
     private static int listenerPort = 55556;
     private static int speakerPort = 55557;
     private Thread t;
@@ -26,31 +18,35 @@ class ChatManager implements Runnable{
     private ThreadPoolListener listenerThread;
     private ThreadPoolSpeaker speakerThread;
 
+    private Controller c;
+
     private ArrayList<String> msgs;
 
-    ChatManager() {
+    ChatServer(Controller c) {
         //this.start();
+        this.c = c;
         msgs = new ArrayList<>();
         System.out.println("ChatManager started");
     }
 
     @Override
     public void run() {
+        System.out.println("ChatServer started");
         //create ThreadPoolListener
         listenerThread = new ThreadPoolListener(listenerPort, 100, this);
         listenerThread.start();
         //create ThreadPooSpeaker
         speakerThread = new ThreadPoolSpeaker(speakerPort, 100, this);
         speakerThread.start();
-
-        while(loop){
-
-        }
-
-        System.out.println("ChatManager ended");
+        try{
+            listenerThread.t.join();
+            speakerThread.t.join();
+        }catch(Exception e){}
+        System.out.println("ChatServer ended");
     }
     public synchronized void receive(String msg){
         msgs.add(msg);
+        c.displayMsg(msg);
     }
     public ArrayList<String> send(){
         return msgs;
@@ -67,33 +63,34 @@ class ChatManager implements Runnable{
         speakerThread.stop();
         t.interrupt();
     }
+    public void clear(){
+        msgs.removeAll(msgs);
+    }
 }
 
 //thread with pool listeners
 class ThreadPoolListener implements Runnable{
-    private Thread t;
+    protected Thread t;
     private boolean flag = true;
     private int port, nThreads;
-    private ServerSocket listener;
+    private ServerSocket socket;
     private ExecutorService pool;
-    private ChatManager cm;
+    private ChatServer cm;
 
-    ThreadPoolListener(int ports, int nThreads, ChatManager cm) {
+    ThreadPoolListener(int ports, int nThreads, ChatServer cm) {
         this.port = ports;
         this.nThreads = nThreads;
         this.cm = cm;
-        System.out.println("ThreadPoolListener started.");
+        //System.out.println("ThreadPoolListener started.");
     }
 
     @Override
     public void run() {
         pool = null;
-        listener = null;
-        int maxTries = 10;
-        while (maxTries > 0) {
-            maxTries -= 1;
+        socket = null;
+        while (socket == null) {
             try {
-                listener = new ServerSocket(port);
+                socket = new ServerSocket(port);
                 pool = Executors.newFixedThreadPool(nThreads);
                 break;
             } catch (Exception e) {
@@ -105,17 +102,16 @@ class ThreadPoolListener implements Runnable{
                 }
             }
         }
-        if (maxTries <= 0) return;
-        System.out.println("ThreadPoolListener is running.");
+        //System.out.println("ThreadPoolListener is running.");
         while (flag) {
             try {
-                pool.execute(new ConnectionListener(listener.accept(), cm));
+                pool.execute(new ConnectionListener(socket.accept(), cm));
             } catch (Exception e) {
                 if (!flag) break;
                 System.out.println("Failed to add new ConnectionListener");
             }
         }
-        System.out.println("ThreadPoolListener end");
+        //System.out.println("ThreadPoolListener end");
 
     }
     public void start(){
@@ -127,8 +123,8 @@ class ThreadPoolListener implements Runnable{
     public void stop() {
         flag = false;
         try{
-            listener.close();
-        }catch(Exception e){};
+            socket.close();
+        }catch(Exception e){}
         pool.shutdown();
         t.interrupt();
     }
@@ -136,29 +132,27 @@ class ThreadPoolListener implements Runnable{
 
 //thread with pool speakers
 class ThreadPoolSpeaker implements Runnable{
-    private Thread t;
+    protected Thread t;
     private boolean flag = true;
     private int port, nThreads;
-    private ServerSocket listener;
+    private ServerSocket socket;
     private ExecutorService pool;
-    private ChatManager cm;
+    private ChatServer cm;
 
-    ThreadPoolSpeaker(int ports, int nThreads, ChatManager cm) {
+    ThreadPoolSpeaker(int ports, int nThreads, ChatServer cm) {
         this.port = ports;
         this.nThreads = nThreads;
         this.cm = cm;
-        System.out.println("ThreadPoolSpeaker started.");
+        //System.out.println("ThreadPoolSpeaker started.");
     }
 
     @Override
     public void run() {
         pool = null;
-        listener = null;
-        int maxTries = 10;
-        while (maxTries > 0) {
-            maxTries -= 1;
+        socket = null;
+        while (socket == null) {
             try {
-                listener = new ServerSocket(port);
+                socket = new ServerSocket(port);
                 pool = Executors.newFixedThreadPool(nThreads);
                 break;
             } catch (Exception e) {
@@ -170,17 +164,16 @@ class ThreadPoolSpeaker implements Runnable{
                 }
             }
         }
-        if (maxTries <= 0) return;
-        System.out.println("ThreadPoolSpeaker is running.");
+        //System.out.println("ThreadPoolSpeaker is running.");
         while (flag) {
             try {
-                pool.execute(new ConnectionSpeaker(listener.accept(), cm));
+                pool.execute(new ConnectionSpeaker(socket.accept(), cm));
             } catch (Exception e) {
                 if (!flag) break;
                 System.out.println("Failed to add new ConnectionSpeaker");
             }
         }
-        System.out.println("ThreadPoolSpeaker end");
+        //System.out.println("ThreadPoolSpeaker end");
 
     }
     public void start(){
@@ -192,8 +185,8 @@ class ThreadPoolSpeaker implements Runnable{
     public void stop() {
         flag = false;
         try{
-            listener.close();
-        }catch(Exception e){};
+            socket.close();
+        }catch(Exception e){}
         pool.shutdown();
         t.interrupt();
     }
@@ -205,9 +198,9 @@ class ConnectionListener implements Runnable{
     private Thread t;
     private Socket socket;
     private boolean loop = true;
-    private ChatManager cm;
+    private ChatServer cm;
 
-    ConnectionListener(Socket socket, ChatManager cm){
+    ConnectionListener(Socket socket, ChatServer cm){
         this.socket = socket;
         this.cm = cm;
         //this.start();
@@ -243,6 +236,9 @@ class ConnectionListener implements Runnable{
     }
     public void stop(){
         loop = false;
+        try {
+            socket.close();
+        }catch(Exception e){}
         t.interrupt();
     }
 }
@@ -253,9 +249,9 @@ class ConnectionSpeaker implements Runnable{
     private Socket socket;
     private boolean loop = true;
     private PrintWriter out;
-    private ChatManager cm;
+    private ChatServer cm;
 
-    ConnectionSpeaker(Socket socket, ChatManager cm){
+    ConnectionSpeaker(Socket socket, ChatServer cm){
         this.socket = socket;
         this.cm = cm;
         //this.start();
@@ -283,6 +279,10 @@ class ConnectionSpeaker implements Runnable{
             ArrayList<String> msgs = cm.send();
             if(n != msgs.size()){
                 //is new message
+                if(n > msgs.size()){
+                    //msgs had been cleared
+                    n = 0;
+                }
                 for(int i = n; i < msgs.size(); i++){
                     speak(msgs.get(i));
                 }
@@ -303,7 +303,11 @@ class ConnectionSpeaker implements Runnable{
     }
     public void stop(){
         loop = false;
+        try{
+            socket.close();
+        }catch(Exception e){}
         t.interrupt();
+
     }
 
 

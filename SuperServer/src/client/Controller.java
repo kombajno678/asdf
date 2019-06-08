@@ -3,6 +3,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -22,27 +23,25 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import client.ChatListener;
+
 public class Controller {
-
-
-
-    private boolean syncFlag;
-    public boolean isSyncFlag() {
-        return syncFlag;
-    }
-
-    public void setSyncFlag(boolean syncFlag) {
-        this.syncFlag = syncFlag;
-    }
     private String username;// = "adamko";
     private String localFolder;// = "local\\"+username;
     private String ip;// = "127.0.0.1";
     private int port;// = 55555;
+    private static int listenerPort = 55557;
+    private static int speakerPort = 55556;
     //private ClientThread.UpdateFilesFromServerClass updater = null;
     //private ClientThread.CheckForNewLocalFiles checker = null;
 
     private ClientThread.BackgroundTasks bg = null;
-    //private ClientThread.Login login = null;
+
+    //chat
+    private Socket socket;
+    private PrintWriter out;
+    private ChatListener listener;
+
 
     public Controller(){}
 
@@ -65,6 +64,7 @@ public class Controller {
         columnOwner.setCellValueFactory(new PropertyValueFactory<>("owner"));
         columnShared.setCellValueFactory(new PropertyValueFactory<>("others"));
         columnStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+
     }
 
     @FXML
@@ -107,6 +107,49 @@ public class Controller {
     private Button buttonDisconnect;
     @FXML
     private Button buttonClear;
+    @FXML
+    private Button buttonSend;
+    @FXML
+    private TextArea textChat;
+    @FXML
+    private TextField textMsg;
+
+    @FXML
+    void sendMsg(ActionEvent event) {
+        event.consume();
+        String m = textMsg.getText();
+        textMsg.setText("");
+        //speaker.sendMsg(msg);
+        String msg = "username:time>"+m;
+        out.println(msg);
+        //System.out.println(" ... (sent msg:"+msg+")");
+    }
+
+    @FXML
+    void displayMsg(String m){
+        textChat.setText(textChat.getText()+"\n"+m);
+    }
+    void createChatSpeaker(){
+        //this instead of speaker thread
+        try {
+            socket = new Socket(ip, speakerPort);
+        } catch (Exception e) {
+            System.out.println("Listener> Can't create socket.");
+        }
+        out = null;
+        if(socket != null){
+            try {
+                out = new PrintWriter(socket.getOutputStream(), true);
+            } catch (IOException e) {
+                System.out.println("Listener> Failed to get output stream from server");
+            }
+        }
+    }
+    void closeChatSpeaker(){
+        try{
+            socket.close();
+        }catch(Exception e){}
+    }
 
     public void Connect() {
         boolean validFlag = false;
@@ -122,13 +165,11 @@ public class Controller {
         if(validFlag){
             clearFiles();
             //login = new ClientThread.Login(ip, port,username);
+            createChatSpeaker();
             bg = new ClientThread.BackgroundTasks(localFolder, username, ip, port, this);
+            listener = new ChatListener(ip, listenerPort, this);
+            listener.start();
 
-            //updater = new ClientThread.UpdateFilesFromServerClass(this, ip, port, 60, localFolder, username);
-            //updater.start();
-
-            //checker = new ClientThread.CheckForNewLocalFiles(this, ip, port, 5, localFolder, username);
-            //checker.start();
 
             //disable login form
             inputUsername.setDisable(true);
@@ -156,6 +197,8 @@ public class Controller {
         //checker.stop();
         //login.stop();
         bg.stop();
+        listener.stop();
+        closeChatSpeaker();
         buttonConnect.setDisable(false);
         inputUsername.setDisable(false);
         inputPath.setDisable(false);
@@ -200,7 +243,7 @@ public class Controller {
                 textConsole.setScrollTop(Double.MAX_VALUE);
             });
         }catch(Exception e){
-            System.out.println("printText Exception : " + e.getMessage());
+            out.println("printText Exception : " + e.getMessage());
         }
     }
     public void setFileStatus(String fname ,boolean status){

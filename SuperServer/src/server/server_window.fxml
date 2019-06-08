@@ -62,7 +62,11 @@
       <VBox prefHeight="530.0" prefWidth="188.0" spacing="5.0" BorderPane.alignment="CENTER">
          <children>
             <Label alignment="CENTER" prefHeight="17.0" prefWidth="189.0" text="Connected users:" />
-            <ListView fx:id="listUsers" prefHeight="442.0" prefWidth="178.0" />
+            <ListView fx:id="listUsers" prefHeight="147.0" prefWidth="178.0" />
+            <Separator prefWidth="200.0" />
+            <TextArea fx:id="textChat" prefHeight="189.0" prefWidth="178.0" text="Welcome to chat" VBox.vgrow="ALWAYS" />
+            <TextField fx:id="textMsg" />
+            <Button fx:id="buttonSend" mnemonicParsing="false" onAction="#sendMsg" prefHeight="25.0" prefWidth="207.0" text="Send" />
          </children>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />

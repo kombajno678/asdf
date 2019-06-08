@@ -22,6 +22,7 @@ public class Controller {
     private ServerThread server;
     private ServerThread.FileListUpdater updater;
     private HddController hddController = null;
+    private ChatServer chatServer = null;
     //private ServerThread.CsvReadWrite csv;
 
     //hdd folder names
@@ -82,8 +83,21 @@ public class Controller {
     @FXML private TextField inputPort;
     @FXML private TextField inputPath;
 
+    @FXML private TextField textMsg;
+    @FXML private TextArea textChat;
+
+
     @FXML private List<Label> hddOperations = Arrays.asList(labelHdd1Operations,labelHdd2Operations,
             labelHdd3Operations,labelHdd4Operations,labelHdd5Operations );
+
+    @FXML private void sendMsg(){
+        chatServer.receive("SERVER>"+textMsg.getText());
+        textMsg.setText("");
+    }
+    @FXML
+    void displayMsg(String m){
+        textChat.setText(textChat.getText()+"\n"+m);
+    }
 
     @FXML public void updateUsersOnline(ObservableList<String> users){
         Platform.runLater(() -> {
@@ -231,6 +245,8 @@ public class Controller {
             hddController = new HddController(this);
             server = new ServerThread(port, nThreads, path, hdd, hddController);
             updater = new ServerThread.FileListUpdater(hdd, this, server, 10);
+            chatServer = new ChatServer(this);
+            chatServer.start();
             updater.start();
             //wait till updater finishes init
             while(!updater.initialized){
@@ -248,6 +264,7 @@ public class Controller {
         event.consume();
         server.stop();
         updater.stop();
+        chatServer.stop();
         //csv.stop();
         buttonStop.setDisable(true);
 
@@ -259,6 +276,7 @@ public class Controller {
     public void shutdown(){
         if(server != null)server.stop();
         if(updater != null)updater.stop();
+        if(chatServer != null)chatServer.stop();
     }
 
 }

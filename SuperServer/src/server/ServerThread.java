@@ -227,7 +227,7 @@ class ServerThread implements Runnable {
         flag = false;
         try{
             listener.close();
-        }catch(Exception e){};
+        }catch(Exception e){}
         pool.shutdown();
         t.interrupt();
     }
