@@ -121,13 +121,14 @@ public class Controller {
         textMsg.setText("");
         //speaker.sendMsg(msg);
         String msg = "username:time>"+m;
-        out.println(msg);
+        if(out != null)out.println(msg);
         //System.out.println(" ... (sent msg:"+msg+")");
     }
 
     @FXML
     void displayMsg(String m){
         textChat.setText(textChat.getText()+"\n"+m);
+        textChat.setScrollTop(Double.MAX_VALUE);
     }
     void createChatSpeaker(){
         //this instead of speaker thread
@@ -213,6 +214,11 @@ public class Controller {
         buttonUnshare.setDisable(true);
         textConsole.setDisable(true);
 
+    }
+    public void shutdown(){
+        if(bg != null)bg.stop();
+        if(listener != null)listener.stop();
+        closeChatSpeaker();
     }
     public void Share(){
         //TablePosition temp = tableFiles.getFocusModel().getFocusedCell();
