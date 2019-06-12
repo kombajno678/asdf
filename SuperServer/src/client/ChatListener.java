@@ -70,6 +70,7 @@ class ChatListener implements Runnable{
 
     @Override
     public void run() {
+        System.out.println("ChatListener start");
         if(socket == null)createSocket();
         while(loop){
             try{
@@ -79,6 +80,8 @@ class ChatListener implements Runnable{
             }catch(Exception e){}
 
         }
+        System.out.println("ChatListener end");
+
     }
     public void start(){
         if (t == null) {
@@ -90,6 +93,7 @@ class ChatListener implements Runnable{
         loop = false;
         t.interrupt();
         try {
+            //in.close();
             socket.close();
         }catch(Exception e){}
         //in.close();

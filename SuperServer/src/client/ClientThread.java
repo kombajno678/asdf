@@ -10,6 +10,7 @@ import java.util.concurrent.*;
 import java.util.regex.Pattern;
 //import java.util.concurrent.ThreadLocalRandom;
 
+import javafx.scene.control.Alert;
 import javafx.scene.control.ChoiceDialog;
 import server.FileEntry;
 
@@ -21,6 +22,7 @@ class ClientThread {
         private boolean loop;
         private ArrayList<FileEntry> filesLocal = new ArrayList<>();
         private ArrayList<FileEntry> filesServer = new ArrayList<>();
+        private ArrayList<FileEntry> listForGui = new ArrayList<>();
         private String localFolder, username;
         private Controller c;
         private Socket socket;
@@ -28,7 +30,9 @@ class ClientThread {
         private String ip;
         private int port;
         private int waitTime = 5;
-        public BackgroundTasks(String localFolder, String username, String ip, int port, Controller c) {
+        private boolean loggedIn = false;
+
+        BackgroundTasks(String localFolder, String username, String ip, int port, Controller c) {
             this.localFolder = localFolder;
             this.username = username;
             this.ip = ip;
@@ -45,7 +49,8 @@ class ClientThread {
         public void run() {
             System.out.println("BG thread srtared");
             if(socket == null)createSocket();
-            if(login()){
+            loggedIn = login();
+            if(loggedIn){
                 c.printText("Connected and logged in as: " + username);
             }else{
                 c.printText("Trying to connect to server ... ");
@@ -54,9 +59,19 @@ class ClientThread {
             int n = 2;
             while (loop) {
                 n--;
+
                 if(socket == null)createSocket();
                 if(socket == null || socket.isClosed()){
                     c.printText("Can't connect to server");
+                }else{
+                    if(!loggedIn){
+                        loggedIn = login();
+                        if(loggedIn){
+                            c.printText("Connected and logged in as: " + username);
+                        }else{
+                            c.printText("Trying to connect to server ... ");
+                        }
+                    }
                 }
 
                 //-------------------------------------------read files from hdd
@@ -76,6 +91,9 @@ class ClientThread {
                         FileEntry fs = i_server.next();
                         if(fs.getFilename().equals(name) && fs.getOwner().equals(owner)){
                             //found local file on filesServerCopy, now update owner and stuff
+
+
+
                             filesLocal.get(i_local).setOthers(fs.getOthers());
                             filesLocal.get(i_local).setHddNo(fs.getHddNo());
                             filesLocal.get(i_local).setStatus("local + server");
@@ -88,7 +106,7 @@ class ClientThread {
 
 
                 //create list for gui
-                ArrayList<FileEntry> listForGui = new ArrayList<>();
+                listForGui.clear();
                 listForGui.addAll(filesLocal);
                 //add files that are only on server
                 listForGui.addAll(filesServerCopy);
@@ -151,17 +169,23 @@ class ClientThread {
             if(f.getOwner().equals(username)){
                 //open new window and ask from whom unshare this file
                 List<String> choices = f.getOthers();
-                ChoiceDialog<String> dialog = new ChoiceDialog<>(null, choices);
-                dialog.setTitle("Unshare file");
-                dialog.setHeaderText("Unshare file "+f.getFilename()+" from:");
-                dialog.setContentText("Choose user:");
-                Optional<String> result = dialog.showAndWait();
-                result.ifPresent(letter -> {
-                    System.out.println("Your choice: " + letter);
-                    out.println("unshare "+f.getFilename() +" "+f.getOwner()+" "+letter);
-                });
+                if(choices.size() > 0){
+                    ChoiceDialog<String> dialog = new ChoiceDialog<>(null, choices);
+                    dialog.setTitle("Unshare file");
+                    dialog.setHeaderText("Unshare file "+f.getFilename()+" from:");
+                    dialog.setContentText("Choose user:");
+                    Optional<String> result = dialog.showAndWait();
+                    result.ifPresent(letter -> {
+                        System.out.println("Your choice: " + letter);
+                        out.println("unshare "+f.getFilename() +" "+f.getOwner()+" "+letter);
+                        //c.updateFilesForce(listForGui);
+                    });
+                }else{
+                    infoDialog("SuperClient - info", "There's nobody from whom you can unshare this file.");
+                }
+
             }else{
-                c.printText("You can't unshare somebody else's file");
+                infoDialog("SuperClient - info", "You can't share somebody else's file");
             }
         }
         public void share(FileEntry f){
@@ -169,17 +193,38 @@ class ClientThread {
             if(f.getOwner().equals(username)){
                 //open new window and ask to whom share this file
                 List<String> choices = getUsersFromServer();
-                ChoiceDialog<String> dialog = new ChoiceDialog<>(null, choices);
-                dialog.setTitle("Share file");
-                dialog.setHeaderText("Share file "+f.getFilename()+" to:");
-                dialog.setContentText("Choose user:");
-                Optional<String> result = dialog.showAndWait();
-                result.ifPresent(letter -> {
-                    System.out.println("Your choice: " + letter);
-                    out.println("share "+f.getFilename() +" "+f.getOwner()+" "+letter);
-                });
+                choices.removeAll(f.getOthers());
+                choices.remove(username);
+                if(choices.size() > 0){
+                    ChoiceDialog<String> dialog = new ChoiceDialog<>(null, choices);
+                    dialog.setTitle("Share file");
+                    dialog.setHeaderText("Share file "+f.getFilename()+" to:");
+                    dialog.setContentText("Choose user:");
+                    Optional<String> result = dialog.showAndWait();
+                    result.ifPresent(letter -> {
+                        System.out.println("Your choice: " + letter);
+                        out.println("share "+f.getFilename() +" "+f.getOwner()+" "+letter);
+                    });
+                }else{
+                    infoDialog("SuperClient - info", "There's nobody to share this file to.");
+                }
+
             }else{
-                c.printText("You can't share somebody else's file");
+                infoDialog("SuperClient - info", "You can't share somebody else's file");
+            }
+        }
+        public void delete(FileEntry f){
+
+            //send delete to server
+            out.println("delete "+f.getFilename()+" "+f.getOwner());
+            //get msg from server, if it deleted file
+            //todo:check
+            //if it didnt, dont delete file here
+            //delete file from hdd
+            if(new File(f.getPath()).delete()){
+                System.out.println("deleted successfully: "+f.getFilename());
+            }else {
+                System.out.println("didn't delete: " + f.getFilename());
             }
         }
         public void changeFileName(String oldFileName, String newFileName){
@@ -187,6 +232,7 @@ class ClientThread {
             //change name in entry
             //nvm, only this:
             //change name of file on disk
+            /*
             File oldFile = new File(localFolder + File.separator + File.separator + oldFileName);
             if(!oldFile.exists()){
                 System.out.println("!oldFile.exists()");
@@ -201,26 +247,25 @@ class ClientThread {
                 }
             }
             System.out.println("Changed " + oldFileName + " to: " + newFileName);
+            */
         }
+
         private void printList(ArrayList<FileEntry> list, String name){
             System.out.print(name + "{"+list.size()+"} : ");
             for(FileEntry f : list){
-                System.out.print(f.getFilename() + ":" +f.getOwner() + ", ");
+                System.out.print(f.getFilename() + ":" +f.getOwner() + ":"+f.getOthers()+"; ");
             }
             System.out.println();
         }
         private void createSocket(){
-            //do {
+            try {
+                socket = new Socket(ip, port);
+            } catch (Exception e) {
                 //if(!loop)break;
-                try {
-                    socket = new Socket(ip, port);
-                } catch (Exception e) {
-                    //if(!loop)break;
-                    System.out.println("BG> Can't create socket.");
-                    //c.printText("CheckForNewLocalFiles> Can't connect to server. Trying again in 10s");
+                System.out.println("BG> Can't create socket.");
+                //c.printText("CheckForNewLocalFiles> Can't connect to server. Trying again in 10s");
 
-                }
-            //} while (socket == null);
+            }
             if(socket != null){
                 try {
                     out = new PrintWriter(socket.getOutputStream(), true);
@@ -408,6 +453,14 @@ class ClientThread {
             awaitTerminationAfterShutdown(poolUpload);
             System.out.println("upload> uploaded "+n+" file(s)!");
             return n;
+        }
+
+        private void infoDialog(String title, String text){
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(text);
+            alert.showAndWait();
         }
 
     }

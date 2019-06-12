@@ -113,13 +113,15 @@ public class FileEntry implements Serializable {
     }
     public void unshare(String userToUnshare){
         //delete userToUnshare from others
+        System.out.println("deleting "+userToUnshare+" from: "+others);
         for(Iterator<String> i = this.others.iterator();i.hasNext();){
             String u = i.next();
             if(u.equals(userToUnshare)){
                 i.remove();
-                return;
+                break;
             }
         }
+        System.out.println("after : "+others);
     }
 
 

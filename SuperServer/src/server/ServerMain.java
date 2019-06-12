@@ -22,7 +22,7 @@ public class ServerMain extends Application {
         Parent root = loader.load();
         Controller controller = loader.getController();
         primaryStage.setTitle("SuperServer");
-        primaryStage.setScene(new Scene(root, 800, 600));
+        primaryStage.setScene(new Scene(root, 1000, 600));
         primaryStage.setOnCloseRequest(e -> {
             e.consume();
             //if dialogbox true

@@ -114,24 +114,53 @@ public class Controller {
     @FXML
     private TextField textMsg;
 
+    @FXML void Dialog(String title, String text){
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(text);
+        alert.showAndWait();
+    }
+    @FXML void Delete(ActionEvent event){
+        event.consume();
+        FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
+        //file : selected file on list
+        //check if user is owner
+        if(file.getOwner().equals(username)){
+            //yes/no dialog
+            Alert alert = new Alert(Alert.AlertType.WARNING, "Do wou want to delete \""+ file.getFilename()+"\" ?", ButtonType.YES, ButtonType.NO);
+            alert.showAndWait();
+            if (alert.getResult() == ButtonType.YES) {
+                bg.delete(file);
+            }
+        }else{
+            Dialog("SuperClient - info","You can't delete file that's not yours.");
+        }
+
+    }
     @FXML
     void sendMsg(ActionEvent event) {
         event.consume();
+        if(out == null)createChatSpeaker();
         String m = textMsg.getText();
         textMsg.setText("");
         //speaker.sendMsg(msg);
-        String msg = "username:time>"+m;
+        String msg = username+"> "+m;
         if(out != null)out.println(msg);
         //System.out.println(" ... (sent msg:"+msg+")");
     }
 
     @FXML
     void displayMsg(String m){
-        textChat.setText(textChat.getText()+"\n"+m);
-        textChat.setScrollTop(Double.MAX_VALUE);
+        Platform.runLater(() -> {
+            textChat.setText(textChat.getText()+"\n"+m);
+            textChat.setScrollTop(Double.MAX_VALUE);
+        });
+
     }
     void createChatSpeaker(){
         //this instead of speaker thread
+        displayMsg("Connecting to chat server ...");
         try {
             socket = new Socket(ip, speakerPort);
         } catch (Exception e) {
@@ -141,6 +170,7 @@ public class Controller {
         if(socket != null){
             try {
                 out = new PrintWriter(socket.getOutputStream(), true);
+                displayMsg("Connected!");
             } catch (IOException e) {
                 System.out.println("Listener> Failed to get output stream from server");
             }
@@ -148,6 +178,7 @@ public class Controller {
     }
     void closeChatSpeaker(){
         try{
+            out.println("!exit");
             socket.close();
         }catch(Exception e){}
     }
@@ -166,8 +197,9 @@ public class Controller {
         if(validFlag){
             clearFiles();
             //login = new ClientThread.Login(ip, port,username);
-            createChatSpeaker();
+
             bg = new ClientThread.BackgroundTasks(localFolder, username, ip, port, this);
+            createChatSpeaker();
             listener = new ChatListener(ip, listenerPort, this);
             listener.start();
 
@@ -185,6 +217,7 @@ public class Controller {
             buttonDisconnect.setDisable(false);
             buttonClear.setDisable(false);
             buttonShare.setDisable(false);
+            buttonDelete.setDisable(false);
             buttonUnshare.setDisable(false);
 
             textConsole.setDisable(false);
@@ -211,6 +244,7 @@ public class Controller {
         buttonDisconnect.setDisable(true);
         buttonClear.setDisable(true);
         buttonShare.setDisable(true);
+        buttonDelete.setDisable(true);
         buttonUnshare.setDisable(true);
         textConsole.setDisable(true);
 
@@ -221,22 +255,23 @@ public class Controller {
         closeChatSpeaker();
     }
     public void Share(){
-        //TablePosition temp = tableFiles.getFocusModel().getFocusedCell();
         FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
         //file : selected file on list
-        Platform.runLater(() -> printText("share : " + file));
+        Platform.runLater(() -> printText("sharing : " + file));
         if(file.getOwner().equals(username)){
             bg.share(file);
         }
     }
     public void Unshare(){
-        //TablePosition temp = tableFiles.getFocusModel().getFocusedCell();
         FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
         //file : selected file on list
-        Platform.runLater(() -> printText("unshare : " + file));
-        if(file.getOwner().equals(username)){
-            bg.unshare(file);
+        if(file.getOthers().size() > 0){
+            Platform.runLater(() -> printText("unsharing : " + file));
+            if(file.getOwner().equals(username)){
+                bg.unshare(file);
+            }
         }
+
     }
     public void Clear(){
         textConsole.clear();
@@ -273,30 +308,34 @@ public class Controller {
         tableFiles.getItems().clear();
     }
     public void updateFiles(ArrayList<FileEntry> f) {
-        ObservableList<FileEntry> listForGui = FXCollections.observableArrayList();
-        for(FileEntry fe : f){
-            listForGui.add(fe);
-        }
-
+        ObservableList<FileEntry> listForGui = FXCollections.observableArrayList(f);
         if(tableFiles.getItems().size() > 0){
-            for(Iterator<FileEntry> fGui = tableFiles.getItems().iterator(); fGui.hasNext();){
-                FileEntry fgui = fGui.next();
+            for(int iGui = 0; iGui < tableFiles.getItems().size(); iGui++){
+                FileEntry fold = tableFiles.getItems().get(iGui);
                 boolean found = false;
-                for(Iterator<FileEntry> fList = listForGui.iterator(); fList.hasNext();){
-                    FileEntry flist = fList.next();
-                    if(fgui.equals2(flist)){
-                        //same entry, skip, all good
-                        //System.out.println(" " + fgui.getFilename() +" equals " + flist.getFilename());
+                for(Iterator<FileEntry> i = listForGui.iterator(); i.hasNext();){
+                    FileEntry fnew = i.next();
+                    if(fnew.getFilename().equals(fold.getFilename()) && fnew.getOwner().equals(fold.getOwner()) ){
+                        //same file entry
+                        //update info
+                        fold.setOthers(fnew.getOthers());
+                        if(fold.getSize() != fnew.getSize()){
+                            fold.setSize(fnew.getSize());
+                        }
                         //later delete from list4gui
                         found = true;
-                        fList.remove();
+
+                        i.remove();
                         break;
                     }else{
                         //continue search
                     }
                 }
                 if(!found){
-                    fGui.remove();
+                    tableFiles.getItems().remove(iGui);
+                    //fGui.remove();
+                }else{
+                    tableFiles.getItems().set(iGui, fold);
                 }
             }
 
@@ -308,5 +347,6 @@ public class Controller {
 
         Platform.runLater(() -> labelFiles.setText(""+tableFiles.getItems().size()));
     }
+
 }
 

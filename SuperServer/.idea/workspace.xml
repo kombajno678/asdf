@@ -2,11 +2,42 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="cdb932d9-7e58-4d94-93a9-e7b232ef17da" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/src/Test.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/client/client_window_2.fxml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/client/ClientMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/ClientMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/local_adamko/adamko/2137.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/Test.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/client/ChatListener.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/client/ChatListener.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/client/ClientThread$BackgroundTasks.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/client/ClientThread$BackgroundTasks.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/client/ClientThread$FileDownloadClass.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/client/ClientThread$FileDownloadClass.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/client/ClientThread$FileUploadClass.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/client/ClientThread$FileUploadClass.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/client/ClientThread.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/client/ClientThread.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/client/Controller.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/client/Controller.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/client/client.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/client/client_window_2.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/client/client_window_2.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/ChatServer.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/ChatServer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/Connection.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/Connection.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/ConnectionListener.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/ConnectionListener.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/ConnectionSpeaker.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/ConnectionSpeaker.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/Controller.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/Controller.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/FileEntry.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/FileEntry.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/HddController.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/HddController.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/ServerMain.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/ServerMain.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/ServerThread$FileListUpdater.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/ServerThread$FileListUpdater.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/ServerThread.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/ServerThread.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/ThreadPoolListener.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/ThreadPoolListener.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/ThreadPoolSpeaker.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/ThreadPoolSpeaker.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/SuperClient/server/server_window.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/SuperClient/server/server_window.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Test.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/client/ChatListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/ChatListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/client/ClientThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/ClientThread.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/client/Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/Controller.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/client/client.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/client/client_window_2.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/client/client_window_2.fxml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server/ChatServer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ChatServer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server/Controller.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/Controller.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server/FileEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/FileEntry.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server/ServerMain.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerMain.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server/ServerThread.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/ServerThread.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/server/server_window.fxml" beforeDir="false" afterPath="$PROJECT_DIR$/src/server/server_window.fxml" afterDir="false" />
     </list>
     <ignored path="JavaFxApplication.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -70,16 +101,47 @@
     <favorites_list name="JavaFxApplication" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.541692">
+    <splitter split-orientation="horizontal" split-proportion="0.541335">
       <split-first>
         <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/client/ClientMain.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="37">
-                  <caret line="16" column="81" selection-start-line="16" selection-start-column="81" selection-end-line="16" selection-end-column="81" />
+                <state relative-caret-position="340">
+                  <caret line="31" column="13" selection-start-line="26" selection-start-column="12" selection-end-line="31" selection-end-column="13" />
                   <folding>
                     <element signature="imports" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/src/client/ClientThread.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="565">
+                  <caret line="227" column="13" selection-start-line="227" selection-start-column="13" selection-end-line="227" selection-end-column="13" />
+                  <folding>
+                    <element signature="imports" expanded="true" />
+                    <element signature="method#BackgroundTasks#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#stop#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#getUsersFromServer#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#unshare#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#changeFileName#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#createSocket#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#closeSocket#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#login#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#logout#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#getFilesHdd#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#listFilesForFolder#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#getFilesServer#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#getDownloadList#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#getUploadList#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#awaitTerminationAfterShutdown#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#download#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="method#upload#0;class#BackgroundTasks#0;class#ClientThread#0" />
+                    <element signature="class#FileDownloadClass#0;class#ClientThread#0" />
+                    <element signature="class#FileUploadClass#0;class#ClientThread#0" />
                   </folding>
                 </state>
               </provider>
@@ -88,14 +150,32 @@
           <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/client/Controller.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="-1271">
-                  <caret line="130" column="48" lean-forward="true" selection-start-line="130" selection-start-column="48" selection-end-line="130" selection-end-column="48" />
+                <state relative-caret-position="-996">
+                  <caret line="246" column="20" selection-start-line="246" selection-start-column="8" selection-end-line="246" selection-end-column="20" />
                   <folding>
                     <element signature="imports" expanded="true" />
-                    <element signature="e#6412#6806#0" />
-                    <element signature="e#6811#7211#0" />
-                    <element signature="e#7633#8179#0" />
-                    <element signature="e#8259#9640#0" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/src/client/client_window_2.fxml">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="255">
+                  <caret line="51" column="60" selection-start-line="51" selection-start-column="56" selection-end-line="51" selection-end-column="60" />
+                </state>
+              </provider>
+              <provider editor-type-id="JavaFX-Scene-Builder" />
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/src/client/ChatListener.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="1156">
+                  <caret line="83" selection-start-line="83" selection-end-line="83" />
+                  <folding>
+                    <element signature="imports" expanded="true" />
                   </folding>
                 </state>
               </provider>
@@ -108,30 +188,21 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/server/ChatServer.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="141">
-                  <caret line="126" column="15" selection-start-line="126" selection-start-column="15" selection-end-line="126" selection-end-column="15" />
+                <state relative-caret-position="2329">
+                  <caret line="200" column="4" selection-start-line="200" selection-start-column="4" selection-end-line="200" selection-end-column="4" />
                   <folding>
                     <element signature="imports" expanded="true" />
-                    <element signature="method#start#0;class#ThreadPoolListener#0" />
-                    <element signature="method#start#0;class#ThreadPoolSpeaker#0" />
-                    <element signature="method#stop#0;class#ThreadPoolSpeaker#0" />
-                    <element signature="method#ConnectionListener#0;class#ConnectionListener#0" />
-                    <element signature="method#run#0;class#ConnectionListener#0" />
-                    <element signature="method#stop#0;class#ConnectionListener#0" />
-                    <element signature="method#ConnectionSpeaker#0;class#ConnectionSpeaker#0" />
-                    <element signature="method#run#0;class#ConnectionSpeaker#0" />
-                    <element signature="method#speak#0;class#ConnectionSpeaker#0" />
-                    <element signature="method#stop#0;class#ConnectionSpeaker#0" />
+                    <element signature="class#ThreadPoolSpeaker#0" />
                   </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="false">
+          <file pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/src/server/ServerThread.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="504">
-                  <caret line="229" column="29" selection-start-line="229" selection-start-column="29" selection-end-line="229" selection-end-column="29" />
+                <state relative-caret-position="667">
+                  <caret line="926" column="17" lean-forward="true" selection-start-line="922" selection-start-column="16" selection-end-line="926" selection-end-column="17" />
                   <folding>
                     <element signature="imports" expanded="true" />
                     <element signature="method#fileExists#0;class#ServerThread#0" />
@@ -140,24 +211,47 @@
                     <element signature="method#addFromCsv#0;class#ServerThread#0" />
                     <element signature="method#FileListUpdater#0;class#FileListUpdater#0;class#ServerThread#0" />
                     <element signature="method#printList#0;class#FileListUpdater#0;class#ServerThread#0" />
+                    <element signature="method#init#0;class#FileListUpdater#0;class#ServerThread#0" />
                     <element signature="method#createListHdd#0;class#FileListUpdater#0;class#ServerThread#0" />
                     <element signature="method#createListCsv#0;class#FileListUpdater#0;class#ServerThread#0" />
                     <element signature="method#updateUsers#0;class#FileListUpdater#0;class#ServerThread#0" />
                     <element signature="method#readCsv#0;class#FileListUpdater#0;class#ServerThread#0" />
                     <element signature="method#writeCsv#0;class#FileListUpdater#0;class#ServerThread#0" />
+                    <element signature="method#start#0;class#FileListUpdater#0;class#ServerThread#0" />
+                    <element signature="method#stop#0;class#FileListUpdater#0;class#ServerThread#0" />
                     <element signature="method#listFilesForFolder#0;class#FileListUpdater#0;class#ServerThread#0" />
-                    <element signature="class#HddController#0" />
                     <element signature="method#listFilesForFolder#0;class#Connection#0" />
+                    <element signature="method#printMsg#0;class#Connection#0" />
+                    <element signature="method#receiveFile#0;class#Connection#0" />
+                    <element signature="method#sendList#0;class#Connection#0" />
+                    <element signature="method#sendFile#0;class#Connection#0" />
+                    <element signature="method#shareFile#0;class#Connection#0" />
+                    <element signature="method#unshareFile#0;class#Connection#0" />
+                    <element signature="method#userLogin#0;class#Connection#0" />
+                    <element signature="method#userLogout#0;class#Connection#0" />
+                    <element signature="method#sendUsersList#0;class#Connection#0" />
                   </folding>
                 </state>
               </provider>
             </entry>
           </file>
-          <file pinned="false" current-in-tab="true">
+          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/server/Controller.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="389">
-                  <caret line="275" column="16" selection-start-line="275" selection-start-column="16" selection-end-line="275" selection-end-column="16" />
+                <state relative-caret-position="4777">
+                  <caret line="297" column="13" selection-start-line="297" selection-start-column="13" selection-end-line="297" selection-end-column="13" />
+                  <folding>
+                    <element signature="imports" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/src/server/FileEntry.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="1836">
+                  <caret line="123" column="34" selection-start-line="123" selection-start-column="34" selection-end-line="123" selection-end-column="34" />
                   <folding>
                     <element signature="imports" expanded="true" />
                   </folding>
@@ -168,8 +262,8 @@
           <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/server/ServerMain.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="221">
-                  <caret line="22" column="55" lean-forward="true" selection-start-line="18" selection-start-column="8" selection-end-line="22" selection-end-column="55" />
+                <state relative-caret-position="255">
+                  <caret line="24" column="50" selection-start-line="24" selection-start-column="50" selection-end-line="24" selection-end-column="50" />
                   <folding>
                     <element signature="imports" expanded="true" />
                   </folding>
@@ -178,22 +272,13 @@
             </entry>
           </file>
           <file pinned="false" current-in-tab="false">
-            <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/lang/Thread.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="11764">
-                  <caret line="747" selection-start-line="747" selection-end-line="747" />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file pinned="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/src/server/server_window.fxml">
-              <provider editor-type-id="JavaFX-Scene-Builder" />
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1156">
-                  <caret line="68" column="81" selection-start-line="68" selection-start-column="74" selection-end-line="68" selection-end-column="81" />
+                <state relative-caret-position="1071">
+                  <caret line="63" column="105" selection-start-line="63" selection-start-column="105" selection-end-line="63" selection-end-column="105" />
                 </state>
               </provider>
+              <provider editor-type-id="JavaFX-Scene-Builder" />
             </entry>
           </file>
         </leaf>
@@ -209,15 +294,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>local+server&quot;</find>
-      <find>todo</find>
-      <find>mkdr</find>
-      <find>49439</find>
-      <find>filesLocal</find>
-      <find>platf</find>
-      <find>sending</find>
-      <find>listForGui</find>
-      <find>Lolo_</find>
       <find>userFilesList</find>
       <find>adamko3</find>
       <find>03-Fuck_You.mp3</find>
@@ -239,6 +315,15 @@
       <find>getin</find>
       <find>getinpu</find>
       <find>css</find>
+      <find>ChatManager started</find>
+      <find>start</find>
+      <find>ConnectionListener</find>
+      <find>update</find>
+      <find>chuj</find>
+      <find>Thread(</find>
+      <find>ConnectionSpeaker</find>
+      <find>BG&gt; Can't create socket</find>
+      <find>Server Thread</find>
     </findStrings>
   </component>
   <component name="FindManager">
@@ -250,8 +335,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$PROJECT_DIR$/src/server/ChatServer.java" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/src/Test.java" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/src/server/ChatServer.java" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/client/ClientThread.java" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/server/ServerThread.java" root0="FORCE_HIGHLIGHTING" />
   </component>
@@ -267,29 +351,30 @@
         <option value="$PROJECT_DIR$/src/client/sample.fxml" />
         <option value="$PROJECT_DIR$/src/client/FileEntry.java" />
         <option value="$PROJECT_DIR$/src/client/client_window.fxml" />
-        <option value="$PROJECT_DIR$/src/server/server_window.fxml" />
-        <option value="$PROJECT_DIR$/src/client/ClientThread.java" />
-        <option value="$PROJECT_DIR$/src/server/ServerMain.java" />
-        <option value="$PROJECT_DIR$/src/server/FileEntry.java" />
         <option value="$PROJECT_DIR$/src/client/chat_window.fxml" />
-        <option value="$PROJECT_DIR$/src/server/ServerThread.java" />
-        <option value="$PROJECT_DIR$/src/server/ChatServer.java" />
-        <option value="$PROJECT_DIR$/src/server/Controller.java" />
         <option value="$PROJECT_DIR$/src/client/ChatController.java" />
         <option value="$PROJECT_DIR$/src/client/ChatClient.java" />
-        <option value="$PROJECT_DIR$/src/client/ChatListener.java" />
         <option value="$PROJECT_DIR$/src/Test.java" />
+        <option value="$PROJECT_DIR$/src/client/ChatListener.java" />
+        <option value="$PROJECT_DIR$/src/server/ChatServer.java" />
+        <option value="$PROJECT_DIR$/src/server/FileEntry.java" />
+        <option value="$PROJECT_DIR$/src/client/client.css" />
         <option value="$PROJECT_DIR$/src/client/ClientMain.java" />
+        <option value="$PROJECT_DIR$/src/server/server_window.fxml" />
+        <option value="$PROJECT_DIR$/src/server/ServerMain.java" />
+        <option value="$PROJECT_DIR$/src/server/Controller.java" />
+        <option value="$PROJECT_DIR$/src/client/client_window_2.fxml" />
+        <option value="$PROJECT_DIR$/src/server/ServerThread.java" />
+        <option value="$PROJECT_DIR$/src/client/ClientThread.java" />
         <option value="$PROJECT_DIR$/src/client/Controller.java" />
       </list>
     </option>
   </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="165" />
-    <option name="y" value="-23" />
-    <option name="width" value="1452" />
-    <option name="height" value="800" />
+    <option name="x" value="495" />
+    <option name="width" value="1432" />
+    <option name="height" value="1057" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -302,8 +387,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
       <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -343,7 +428,7 @@
     <property name="MemberChooser.sorted" value="false" />
     <property name="OverrideImplement.combined" value="false" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1560013496825" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1560338031210" />
     <property name="create.test.in.the.same.root" value="true" />
     <property name="dynamic.classpath" value="false" />
     <property name="project.structure.last.edited" value="Modules" />
@@ -376,7 +461,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.asdlientMain">
+  <component name="RunManager" selected="Multirun.c+s">
     <configuration default="true" type="DartUnitRunConfigurationType" factoryName="DartUnit">
       <option name="VMOptions" />
       <option name="arguments" />
@@ -525,6 +610,11 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="c+s" type="Multirun" factoryName="Multirun" separateTabs="true" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="0">
+      <runConfiguration name="ClientMain" type="Application" />
+      <runConfiguration name="ServerMain" type="Application" />
+      <method v="2" />
+    </configuration>
     <configuration name="multichat" type="Multirun" factoryName="Multirun" separateTabs="true" startOneByOne="true" markFailedProcess="true" hideSuccessProcess="false" delayTime="0">
       <runConfiguration name="ChatClient" type="Application" />
       <runConfiguration name="chat cliente 2" type="Application" />
@@ -568,6 +658,7 @@
       <item itemvalue="Application.Test" />
       <item itemvalue="Compound.myConf" />
       <item itemvalue="Compound.myConf2" />
+      <item itemvalue="Multirun.c+s" />
       <item itemvalue="Multirun.multiclient" />
       <item itemvalue="Multirun.multichat" />
     </list>
@@ -610,7 +701,7 @@
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1066" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.6703755" visible="true" weight="0.124200426" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.6703755" visible="true" weight="0.08901919" />
       <window_info id="Structure" order="1" weight="0.25" />
       <window_info id="Favorites" order="2" />
       <window_info id="Designer" order="3" />
@@ -619,8 +710,8 @@
       <window_info id="Capture Tool" order="6" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.46801707" visible="true" weight="0.27974278" />
-      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.53198296" side_tool="true" weight="0.32583067" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.3944563" weight="0.77599144" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.60554373" side_tool="true" weight="0.24222937" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.2454448" />
@@ -701,7 +792,6 @@
     </expressions>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/client_window.fxml" />
     <entry file="file://$PROJECT_DIR$/src/ClientThread.java" />
     <entry file="file://$PROJECT_DIR$/src/ClientMain.java" />
     <entry file="file://$PROJECT_DIR$/src/client/sample.fxml" />
@@ -780,13 +870,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/util/concurrent/Executor.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="443">
-          <caret line="139" column="9" selection-start-line="139" selection-start-column="9" selection-end-line="139" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/net/ServerSocket.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="193">
@@ -854,17 +937,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/util/ArrayList.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="414">
-          <caret line="320" column="25" selection-start-line="320" selection-start-column="25" selection-end-line="320" selection-end-column="25" />
-          <folding>
-            <element signature="e#11079#11080#0" expanded="true" />
-            <element signature="e#11117#11118#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/client/FileEntry.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="407">
@@ -882,38 +954,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/io/FileSystem.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="239">
-          <caret line="181" column="28" selection-start-line="181" selection-start-column="28" selection-end-line="181" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/io/File.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="251">
-          <caret line="1205" column="18" selection-start-line="1205" selection-start-column="18" selection-end-line="1205" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/util/List.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="58">
           <caret line="543" column="6" selection-start-line="543" selection-start-column="6" selection-end-line="543" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/util/Scanner.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="1539" selection-start-line="1539" selection-end-line="1539" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/net/SocketInputStream.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="178">
-          <caret line="93" column="23" selection-start-line="93" selection-start-column="23" selection-end-line="93" selection-end-column="23" />
         </state>
       </provider>
     </entry>
@@ -928,59 +972,13 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/server/FileEntry.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2363">
-          <caret line="154" column="13" selection-start-line="154" selection-start-column="13" selection-end-line="154" selection-end-column="13" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/client/ClientThread.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="851">
-          <caret line="457" column="18" selection-start-line="457" selection-start-column="18" selection-end-line="457" selection-end-column="18" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="method#BackgroundTasks#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#stop#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#getUsersFromServer#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#unshare#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#share#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#changeFileName#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#printList#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#closeSocket#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#login#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#logout#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#getFilesHdd#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#listFilesForFolder#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#getFilesServer#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#getDownloadList#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#getUploadList#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#awaitTerminationAfterShutdown#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#download#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="method#upload#0;class#BackgroundTasks#0;class#ClientThread#0" />
-            <element signature="class#FileUploadClass#0;class#ClientThread#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/util/concurrent/ExecutorService.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="232">
-          <caret line="155" column="9" selection-start-line="155" selection-start-column="9" selection-end-line="155" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/client/chat_window.fxml">
-      <provider editor-type-id="JavaFX-Scene-Builder" />
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="425">
           <caret line="25" selection-start-line="25" selection-end-line="25" />
         </state>
       </provider>
+      <provider editor-type-id="JavaFX-Scene-Builder" />
     </entry>
     <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/lang/System.java">
       <provider selected="true" editor-type-id="text-editor">
@@ -1000,81 +998,154 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/client/ChatListener.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="629">
-          <caret line="52" selection-start-line="52" selection-end-line="52" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/client/client_window.fxml">
-      <provider editor-type-id="JavaFX-Scene-Builder" />
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1139">
           <caret line="67" column="37" selection-start-line="67" selection-start-column="27" selection-end-line="67" selection-end-column="37" />
         </state>
       </provider>
+      <provider editor-type-id="JavaFX-Scene-Builder" />
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/Test.java" />
     <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/lang/Thread.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="11764">
+        <state relative-caret-position="531">
           <caret line="747" selection-start-line="747" selection-end-line="747" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/server/server_window.fxml">
-      <provider editor-type-id="JavaFX-Scene-Builder" />
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/net/SocketInputStream.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="178">
+          <caret line="93" column="23" selection-start-line="93" selection-start-column="23" selection-end-line="93" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/util/concurrent/Executor.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1734">
+          <caret line="135" column="33" lean-forward="true" selection-start-line="135" selection-start-column="33" selection-end-line="135" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/util/Scanner.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="229">
+          <caret line="303" column="19" selection-start-line="303" selection-start-column="19" selection-end-line="303" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/util/concurrent/ExecutorService.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2244">
+          <caret line="166" column="33" selection-start-line="166" selection-start-column="23" selection-end-line="166" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/util/ArrayList.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="201">
+          <caret line="579" column="19" selection-start-line="579" selection-start-column="19" selection-end-line="579" selection-end-column="19" />
+          <folding>
+            <element signature="e#11079#11080#0" expanded="true" />
+            <element signature="e#11117#11118#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/client/client.css" />
+    <entry file="file://$PROJECT_DIR$/src/server/dark.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-83" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/client/ClientMain.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="340">
+          <caret line="31" column="13" selection-start-line="26" selection-start-column="12" selection-end-line="31" selection-end-column="13" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/client/ChatListener.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1156">
-          <caret line="68" column="81" selection-start-line="68" selection-start-column="74" selection-end-line="68" selection-end-column="81" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/client/client.css">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/client/client_window_2.fxml">
-      <provider editor-type-id="JavaFX-Scene-Builder" />
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="544">
-          <caret line="32" column="5" selection-start-line="32" selection-start-column="5" selection-end-line="32" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/Test.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="1" column="4" selection-start-line="1" selection-start-column="4" selection-end-line="1" selection-end-column="4" />
+          <caret line="83" selection-start-line="83" selection-end-line="83" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/server/ChatServer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="141">
-          <caret line="126" column="15" selection-start-line="126" selection-start-column="15" selection-end-line="126" selection-end-column="15" />
+        <state relative-caret-position="2329">
+          <caret line="200" column="4" selection-start-line="200" selection-start-column="4" selection-end-line="200" selection-end-column="4" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="method#start#0;class#ThreadPoolListener#0" />
-            <element signature="method#start#0;class#ThreadPoolSpeaker#0" />
-            <element signature="method#stop#0;class#ThreadPoolSpeaker#0" />
-            <element signature="method#ConnectionListener#0;class#ConnectionListener#0" />
-            <element signature="method#run#0;class#ConnectionListener#0" />
-            <element signature="method#stop#0;class#ConnectionListener#0" />
-            <element signature="method#ConnectionSpeaker#0;class#ConnectionSpeaker#0" />
-            <element signature="method#run#0;class#ConnectionSpeaker#0" />
-            <element signature="method#speak#0;class#ConnectionSpeaker#0" />
-            <element signature="method#stop#0;class#ConnectionSpeaker#0" />
+            <element signature="class#ThreadPoolSpeaker#0" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/server/Controller.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4777">
+          <caret line="297" column="13" selection-start-line="297" selection-start-column="13" selection-end-line="297" selection-end-column="13" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/server/FileEntry.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1836">
+          <caret line="123" column="34" selection-start-line="123" selection-start-column="34" selection-end-line="123" selection-end-column="34" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/server/ServerMain.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="24" column="50" selection-start-line="24" selection-start-column="50" selection-end-line="24" selection-end-column="50" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/server/server_window.fxml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1071">
+          <caret line="63" column="105" selection-start-line="63" selection-start-column="105" selection-end-line="63" selection-end-column="105" />
+        </state>
+      </provider>
+      <provider editor-type-id="JavaFX-Scene-Builder" />
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/io/FileSystem.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="302">
+          <caret line="161" column="28" selection-start-line="161" selection-start-column="28" selection-end-line="161" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/io/File.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="438">
+          <caret line="1040" column="20" lean-forward="true" selection-start-line="1040" selection-start-column="20" selection-end-line="1040" selection-end-column="20" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/server/ServerThread.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="504">
-          <caret line="229" column="29" selection-start-line="229" selection-start-column="29" selection-end-line="229" selection-end-column="29" />
+        <state relative-caret-position="667">
+          <caret line="926" column="17" lean-forward="true" selection-start-line="922" selection-start-column="16" selection-end-line="926" selection-end-column="17" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="method#fileExists#0;class#ServerThread#0" />
@@ -1083,58 +1154,72 @@
             <element signature="method#addFromCsv#0;class#ServerThread#0" />
             <element signature="method#FileListUpdater#0;class#FileListUpdater#0;class#ServerThread#0" />
             <element signature="method#printList#0;class#FileListUpdater#0;class#ServerThread#0" />
+            <element signature="method#init#0;class#FileListUpdater#0;class#ServerThread#0" />
             <element signature="method#createListHdd#0;class#FileListUpdater#0;class#ServerThread#0" />
             <element signature="method#createListCsv#0;class#FileListUpdater#0;class#ServerThread#0" />
             <element signature="method#updateUsers#0;class#FileListUpdater#0;class#ServerThread#0" />
             <element signature="method#readCsv#0;class#FileListUpdater#0;class#ServerThread#0" />
             <element signature="method#writeCsv#0;class#FileListUpdater#0;class#ServerThread#0" />
+            <element signature="method#start#0;class#FileListUpdater#0;class#ServerThread#0" />
+            <element signature="method#stop#0;class#FileListUpdater#0;class#ServerThread#0" />
             <element signature="method#listFilesForFolder#0;class#FileListUpdater#0;class#ServerThread#0" />
-            <element signature="class#HddController#0" />
             <element signature="method#listFilesForFolder#0;class#Connection#0" />
+            <element signature="method#printMsg#0;class#Connection#0" />
+            <element signature="method#receiveFile#0;class#Connection#0" />
+            <element signature="method#sendList#0;class#Connection#0" />
+            <element signature="method#sendFile#0;class#Connection#0" />
+            <element signature="method#shareFile#0;class#Connection#0" />
+            <element signature="method#unshareFile#0;class#Connection#0" />
+            <element signature="method#userLogin#0;class#Connection#0" />
+            <element signature="method#userLogout#0;class#Connection#0" />
+            <element signature="method#sendUsersList#0;class#Connection#0" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/server/ServerMain.java">
+    <entry file="file://$PROJECT_DIR$/src/client/ClientThread.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="22" column="55" lean-forward="true" selection-start-line="18" selection-start-column="8" selection-end-line="22" selection-end-column="55" />
+        <state relative-caret-position="565">
+          <caret line="227" column="13" selection-start-line="227" selection-start-column="13" selection-end-line="227" selection-end-column="13" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="method#BackgroundTasks#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#stop#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#getUsersFromServer#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#unshare#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#changeFileName#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#createSocket#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#closeSocket#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#login#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#logout#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#getFilesHdd#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#listFilesForFolder#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#getFilesServer#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#getDownloadList#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#getUploadList#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#awaitTerminationAfterShutdown#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#download#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="method#upload#0;class#BackgroundTasks#0;class#ClientThread#0" />
+            <element signature="class#FileDownloadClass#0;class#ClientThread#0" />
+            <element signature="class#FileUploadClass#0;class#ClientThread#0" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/server/Controller.java">
+    <entry file="file://$PROJECT_DIR$/src/client/client_window_2.fxml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="389">
-          <caret line="275" column="16" selection-start-line="275" selection-start-column="16" selection-end-line="275" selection-end-column="16" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
+        <state relative-caret-position="255">
+          <caret line="51" column="60" selection-start-line="51" selection-start-column="56" selection-end-line="51" selection-end-column="60" />
         </state>
       </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/client/ClientMain.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="37">
-          <caret line="16" column="81" selection-start-line="16" selection-start-column="81" selection-end-line="16" selection-end-column="81" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
+      <provider editor-type-id="JavaFX-Scene-Builder" />
     </entry>
     <entry file="file://$PROJECT_DIR$/src/client/Controller.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1271">
-          <caret line="130" column="48" lean-forward="true" selection-start-line="130" selection-start-column="48" selection-end-line="130" selection-end-column="48" />
+        <state relative-caret-position="-996">
+          <caret line="246" column="20" selection-start-line="246" selection-start-column="8" selection-end-line="246" selection-end-column="20" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#6412#6806#0" />
-            <element signature="e#6811#7211#0" />
-            <element signature="e#7633#8179#0" />
-            <element signature="e#8259#9640#0" />
           </folding>
         </state>
       </provider>

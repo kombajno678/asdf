@@ -17,20 +17,17 @@ class ServerThread implements Runnable {
     private int port, nThreads;
     private String path;
     private boolean flag = true;
-
     //list of hdd paths
     private ArrayList<String> hdd;
-
     //list of files for every hdd
     private ArrayList<FileEntry> filesList;
-
     //list of all users
     private ArrayList<String> users;
-
     //list of online users
     private ArrayList<String> usersOnline;
-
     private HddController hddController = null;
+
+    protected Controller c;
 
     public String getPath() {
         return path;
@@ -159,27 +156,21 @@ class ServerThread implements Runnable {
     public void setUsersOnline(ArrayList<String> usersOnline) {
         this.usersOnline = usersOnline;
     }
-
     public synchronized void addToFilesList(FileEntry f){
         filesList.add(f);
     }
 
-    public ServerThread(int ports, int nThreads, String path, ArrayList<String> hdd, HddController hddController) {
+    public ServerThread(int ports, int nThreads, String path, ArrayList<String> hdd, HddController hddController, Controller c) {
         this.port = ports;
         this.nThreads = nThreads;
         this.path = path;
         this.hdd = hdd;
         this.hddController = hddController;
-        //not sure if necessary
+        this.c = c;
         filesList = new ArrayList<>();
         users = new ArrayList<>();
         usersOnline = new ArrayList<>();
-        //
-        /*
-        if (t == null) {
-            t = new Thread(this);
-            t.start();
-        }*/
+
         System.out.println("Server Thread started.");
     }
 
@@ -219,16 +210,19 @@ class ServerThread implements Runnable {
     }
     public void start(){
         if (t == null) {
-            t = new Thread (this);
+            t = new Thread (this, "ServerThread");
             t.start ();
         }
     }
     public void stop() {
         flag = false;
+
         try{
+            pool.shutdown();
             listener.close();
-        }catch(Exception e){}
-        pool.shutdown();
+        }catch(Exception e){
+            //e.printStackTrace();
+        }
         t.interrupt();
     }
 
@@ -273,8 +267,6 @@ class ServerThread implements Runnable {
             //read entries from csv files
             ArrayList<FileEntry> fileListCsv = createListCsv();
             //------------------------ 3. add csv to global ------------------------
-            //add them to global files list
-            //s.addFromCsv(fileListCsv);
             s.setFilesList(fileListCsv);
             //------------------------ 4. add (hdd - csv) to global ------------------------
             //hdd - csv
@@ -288,44 +280,30 @@ class ServerThread implements Runnable {
         public void run() {
             try {
                 Thread.sleep(1000);
-            } catch (InterruptedException e) {
-
-            }
+            } catch (InterruptedException e) {}
             init();
             int previousSize = 0;
             while (loop) {
-
                 //todo: check files on hdd
-                //delete from global list files that had been deleted
                 //
-
-                if(s.getFilesList().size() != previousSize) {
+                if(s.getFilesList().size() != previousSize || true) {
                     System.out.print("Global files list{"+s.getFilesList().size()+"} : ");
                     for(FileEntry f : s.getFilesList()){
-                        System.out.print(f.getFilename() + ":"+f.getOwner()+", ");
+                        if(f.getFilename().equals("2137.txt"))
+                            System.out.print(f);
                     }
                     System.out.println();
                     previousSize = s.getFilesList().size();
                 }
-
-
-
-
                 //save global to csv
                 writeCsv(s.getHdd(), s.getFilesListClone());
-
                 //update list of online users in gui
                 updateUsers();
-
                 //update gui file list
                 updateList();
-
-
                 try {
                     Thread.sleep(waitTime * 1000);
-                } catch (InterruptedException e) {
-
-                }
+                } catch (InterruptedException e) {}
             }
         }
 
@@ -475,7 +453,7 @@ class ServerThread implements Runnable {
 
         public void start() {
             if (t == null) {
-                t = new Thread(this);
+                t = new Thread(this, "FileListUpdater_Thread");
                 t.start();
             }
         }
@@ -508,10 +486,6 @@ class HddController{
 
     private List<Integer> hddNumberOfOperations = Arrays.asList(0, 0, 0, 0, 0);
     private Controller gui;
-/*
-    public synchronized List<Integer> getOperations(){
-        return hddNumberOfOperations;
-    }*/
 
     public HddController(Controller c) {
         gui = c;
@@ -567,6 +541,10 @@ class Connection implements Runnable{
 
     private int msgCounter = 0;
 
+    private InputStream input;
+    private Scanner in;
+    private PrintWriter out;
+
     Connection(Socket socket, ServerThread server, HddController hddController){
         this.socket = socket;
         this.server = server;
@@ -574,7 +552,7 @@ class Connection implements Runnable{
         this.hddController = hddController;
         //this.start();
         if (t == null) {
-            t = new Thread(this);
+            t = new Thread(this, "Connection_"+socket.getPort());
             //t.start();
         }
         printMsg("Connection thread started");
@@ -585,7 +563,7 @@ class Connection implements Runnable{
 
         printMsg("Has connected to server");
 
-        PrintWriter out = null;
+        out = null;
         try{
             out = new PrintWriter(socket.getOutputStream(), true);
         }catch (IOException e){
@@ -595,8 +573,8 @@ class Connection implements Runnable{
 
         boolean loop = true;
        // try {
-            InputStream input = null;
-            Scanner in = null;
+            input = null;
+            in = null;
             try{
                 input = socket.getInputStream();
                 in = new Scanner(input);
@@ -613,277 +591,54 @@ class Connection implements Runnable{
                     String temp = in.nextLine();
                     //printMsg("temp);
                     if(temp.matches("file "+fileNameRegex+" "+fileSizeRegex+" "+userRegex)){
-                        //------------------------------------------------------------------user sends file
-                        String[] a = temp.split(" ");
-                        String filename = a[1];
-                        int filesize = Integer.parseInt(a[2]);
-                        String username = a[3];
-                        //check if this file already exists
-                        boolean fileExists = false;
-                        String msg = "";
-                        for(FileEntry fe : server.getFilesList()){
-                            if(fe.getFilename().equals(filename) && fe.getOwner().equals(username)){
-                                //file is already on server
-                                msg = fe.getFilename() +"="+ filename +" and "+ fe.getOwner() +"="+ username;
-                                fileExists = true;
-                            }
-                        }
-                        //if so, then dont let user upload it it
-                        if(fileExists){
-                            printMsg("nope, bc: "+msg);
-                            out.println("nope");
-                            break;
-                        }
-                        //int hddNo = 1;//hardcoded for now
-                        int hddNo = hddController.addOperation()+1;
-                        String path = hddPaths.get(hddNo-1)+File.separator+File.separator+username+File.separator+File.separator+filename;
-                        //add entry to global file list
-                        //server.getFilesList().add(new FileEntry(filename, hddNo, path, filesize, username));
-                        server.addToFilesList(new FileEntry(filename, hddNo, path, filesize, username));
-                        printMsg("receiving file : " + filename + " from: " + username);
-                        try {
-                            //printMsg(filename + " client: "+in.nextLine());
-                            DataInputStream dis = new DataInputStream(input);
-                            FileOutputStream fos = new FileOutputStream(path);
-                            byte[] buffer = new byte[1024*64];
-                            int read = 0;
-                            int totalRead = 0;
-                            int remaining = filesize;
-                            while((read = dis.read(buffer, 0, Math.min(buffer.length, remaining))) > 0 && remaining > 0) {
-                                totalRead += read;
-                                remaining -= read;
-                                //printMsg(filename + " remaining " + remaining);
-                                fos.write(buffer, 0, read);
-                            }
-                            printMsg(filename + " read " + totalRead + " of " + filesize);
-
-                            out.println("received " + filename);
-
-                            try {
-                                Thread.sleep(1000);
-                            }catch(Exception e){}
-                            fos.close();
-                            dis.close();
-                        }catch(Exception e){
-                            System.out.println("Exception in FileReceiverClass : " + e.getMessage());
-                        }
-                        printMsg("file "+ filename +" saved");
-
-                        hddController.endOperation(hddNo-1);
-
+                        receiveFile(temp);
                         break;
                     }else
                     if(temp.matches("list "+userRegex)){
-                        //----------------------------------------------------------------- user wants list of his files
-                        String[] a = temp.split(" ");
-                        String username = a[1];
-                        //get list of files user has rights to
-                        ArrayList<FileEntry> userFilesList = server.getUserFilesList(username);
-                        //printMsg("userFilesList["+username+"]{"+userFilesList.size()+"} : " + userFilesList);
-                        ObjectOutputStream objectOutput = null;
-                        try {
-                            objectOutput = new ObjectOutputStream(socket.getOutputStream());
-                        }catch(IOException e){
-                            printMsg("list socket.getOutputStream: " + e.getMessage() + " " + e.getCause());
-                        }
-                        try{
-                            objectOutput.writeObject(userFilesList);
-                        } catch (IOException e) {
-                            printMsg("list objectOutput.writeObject: " + e.getMessage() + " " + e.getCause());
-                        }
+                        sendList(temp);
                     }else
                     if(temp.matches("getfile "+fileNameRegex + " " + userRegex + " " + userRegex)){
                         //client wants to download a file
-
-                        String[] a = temp.split(" ");
-                        String filename = a[1];
-                        String owner = a[2];
-                        String username = a[3];
-
-                        //find file that user wants
-                        FileEntry fileToSend = null;
-                        for(FileEntry f : server.getFilesList()){
-                            if(f.getFilename().equals(filename) && f.getOwner().equals(owner)){
-                                fileToSend = f;
-                                break;
-                            }
-                        }
-                        if(fileToSend != null){
-                            //check if user has right to file
-                            boolean canSend = false;
-                            if(!username.equals(fileToSend.getOwner())){
-                                //check if file is shared to user
-                                for(String shared : fileToSend.getOthers()){
-                                    if(shared.equals(username)){
-                                        canSend = true;
-                                        break;
-                                    }
-                                }
-                            }else{
-                                canSend = true;
-                            }
-                            if(canSend){
-                                String filePath = fileToSend.getPath();
-                                long size = fileToSend.getSize();
-                                out.println(size);
-                                printMsg("sending "+fileToSend.getFilename()+":"+fileToSend.getOwner()+" to"+username+" ...");
-                                //sending
-                                //tell hdd controller that is new operation on this hdd
-                                hddController.addOperation(fileToSend.getHddNo()-1);
-                                DataOutputStream dos;
-                                FileInputStream fis;
-                                try {
-                                    dos = new DataOutputStream(socket.getOutputStream());
-                                    fis = new FileInputStream(filePath);
-
-                                    byte[] buffer = new byte[1024*64];
-                                    while (fis.read(buffer) > 0) {
-                                        dos.write(buffer);
-                                    }
-                                    try {
-                                        Thread.sleep(100);//1000
-                                    }catch(Exception e){}
-                                    printMsg("waiting for confirmation from client ... ");
-                                    printMsg("client: "+in.nextLine());
-                                    if(socket.isClosed()){
-                                        System.out.println(filename + " socket closed");
-                                    }else{
-                                        fis.close();
-                                        dos.close();
-                                    }
-
-                                }catch(Exception e){
-                                    printMsg("Exception while sending file : " + e.getMessage());
-                                }
-                                printMsg("sent "+filename + " to client");
-                            }else{
-                                // tell user he cant download file
-                                out.println(-1);
-                            }
-                            hddController.endOperation(fileToSend.getHddNo()-1);
-                        }else{
-                            //didn't find file user wants
-                            out.println("-1");
-                        }
-
-
+                        sendFile(temp);
                         break;
                     }else
-                    if(temp.matches("delete "+fileNameRegex)){
+                    if(temp.matches("delete " + fileNameRegex + " " + userRegex)){
                         //delete file
+                        //todo delete
+                        deleteFile(temp);
                         //delete entry in global file list
                         //delete file from hdd
                     }else
                     if(temp.matches("share "+fileNameRegex+" "+userRegex+" "+userRegex)){
                         //add new user to others
-                        String[] a = temp.split(" ");
-                        String filename = a[1];
-                        String owner = a[2];
-                        String userToShare = a[3];
-                        //file specified file
-                        for(int i = 0 ; i < server.getFilesList().size();i++){
-                            FileEntry f = server.getFilesList().get(i);
-                            if(f.getFilename().equals(filename) && f.getOwner().equals(owner)){
-                                f.share(userToShare);
-                                server.getFilesList().set(i, f);
-                                break;
-                            }
-                        }
-                        printMsg(temp);
+                        shareFile(temp);
                     }else
                     if(temp.matches("unshare "+fileNameRegex+" "+userRegex+" "+userRegex)){
                         //add new user to others
-                        String[] a = temp.split(" ");
-                        String filename = a[1];
-                        String owner = a[2];
-                        String userToUnshare = a[3];
-                        //file specified file
-                        for(int i = 0 ; i < server.getFilesList().size();i++){
-                            FileEntry f = server.getFilesList().get(i);
-                            if(f.getFilename().equals(filename) && f.getOwner().equals(owner)){
-                                f.unshare(userToUnshare);
-                                server.getFilesList().set(i, f);
-                                break;
-                            }
-                        }
-                        printMsg(temp);
+                        unshareFile(temp);
                     }else
                     if(temp.matches("login "+userRegex)){
                         //user login
-                        String[] a = temp.split(" ");
-                        boolean logFlag = true;
-                        for(Iterator<String> i = server.getUsersOnline().iterator();i.hasNext();){
-                            if(i.next().equals(a[1])){
-                                //user is already logged in
-                                logFlag = false;
-                                break;
-                            }
-                        }
-                        if(logFlag)
-                            server.getUsersOnline().add(a[1]);
-
-                        //create folders for user on every drive
-                        for(String hdd : hddPaths){
-                            new File(hdd + File.separator + File.separator + a[1]).mkdirs();
-                        }
-                        printMsg("User " + a[1] + " has logged in");
+                        userLogin(temp);
                     }else
                     if(temp.matches("logout "+userRegex)){
                         //user logout
-                        String[] a = temp.split(" ");
-                        for(Iterator<String> i = server.getUsersOnline().iterator();i.hasNext();){
-                            if(i.next().equals(a[1])){
-                                i.remove();
-                                break;
-                            }
-                        }
-                        printMsg("User " + a[1] + " has logged out");
+                        userLogout(temp);
                         break;
                     }else
                     if(temp.matches("getusers")){
                         //user wants a list of all users ever
                         //send list of all users to client
-                        ArrayList<String> users = new ArrayList<>();
-                        for(Iterator<FileEntry> i = server.getFilesList().iterator(); i.hasNext();){
-                            FileEntry x = i.next();
-                            boolean exists = false;
-                            for(String u : users){
-                                if(u.equals(x.getOwner())){
-                                    exists = true;
-                                    break;
-                                }
-                            }
-                            if(!exists)users.add(x.getOwner());
-                        }
-                        //sending object
-                        ObjectOutputStream objectOutput = null;
-                        try {
-                            objectOutput = new ObjectOutputStream(socket.getOutputStream());
-                        }catch(IOException e){
-                            printMsg("list socket.getOutputStream: " + e.getMessage() + " " + e.getCause());
-                        }
-                        try{
-                            objectOutput.writeObject(users);
-                        } catch (IOException e) {
-                            printMsg("list objectOutput.writeObject: " + e.getMessage() + " " + e.getCause());
-                        }
-
+                        sendUsersList(temp);
                     }else
                     if(temp.matches("exit")){
-                        //loop = false;
                         break;
                     }else {
                         printMsg("no match for : " + temp);
                     }
                 }
             }
-        //}catch(Exception e){
-        //    System.out.println("Listener> Exception occured: " + e.getMessage());
-        //}
-        //--------------------------------------------------------------------------------------------------------------
 
-        //socket.close();
-        //while(true);
 
         try{
             socket.close();
@@ -907,5 +662,271 @@ class Connection implements Runnable{
     private void printMsg(String msg){
         System.out.println(socket.getPort() +File.separator+ t.getId() + File.separator+msgCounter++ +"> "+msg);
         //msgCounter++;
+    }
+    private void receiveFile(String temp){
+        //------------------------------------------------------------------user sends file
+        String[] a = temp.split(" ");
+        String filename = a[1];
+        int filesize = Integer.parseInt(a[2]);
+        String username = a[3];
+        //check if this file already exists
+        boolean fileExists = false;
+        String msg = "";
+        for(FileEntry fe : server.getFilesList()){
+            if(fe.getFilename().equals(filename) && fe.getOwner().equals(username)){
+                //file is already on server
+                msg = fe.getFilename() +"="+ filename +" and "+ fe.getOwner() +"="+ username;
+                fileExists = true;
+            }
+        }
+        //if so, then dont let user upload it it
+        if(fileExists){
+            printMsg("nope, bc: "+msg);
+            out.println("nope");
+            return;
+        }
+        //int hddNo = 1;//hardcoded for now
+        int hddNo = hddController.addOperation()+1;
+        String path = hddPaths.get(hddNo-1)+File.separator+File.separator+username+File.separator+File.separator+filename;
+        //add entry to global file list
+        //server.getFilesList().add(new FileEntry(filename, hddNo, path, filesize, username));
+        server.addToFilesList(new FileEntry(filename, hddNo, path, filesize, username));
+        printMsg("receiving file : " + filename + " from: " + username);
+        try {
+            //printMsg(filename + " client: "+in.nextLine());
+            DataInputStream dis = new DataInputStream(input);
+            FileOutputStream fos = new FileOutputStream(path);
+            byte[] buffer = new byte[1024*64];
+            int read = 0;
+            int totalRead = 0;
+            int remaining = filesize;
+            while((read = dis.read(buffer, 0, Math.min(buffer.length, remaining))) > 0 && remaining > 0) {
+                totalRead += read;
+                remaining -= read;
+                //printMsg(filename + " remaining " + remaining);
+                fos.write(buffer, 0, read);
+            }
+            printMsg(filename + " read " + totalRead + " of " + filesize);
+
+            out.println("received " + filename);
+
+            try {
+                Thread.sleep(1000);
+            }catch(Exception e){}
+            fos.close();
+            dis.close();
+        }catch(Exception e){
+            System.out.println("Exception in FileReceiverClass : " + e.getMessage());
+        }
+        printMsg("file "+ filename +" saved");
+
+        hddController.endOperation(hddNo-1);
+    }
+    private void sendList(String temp){
+        //----------------------------------------------------------------- user wants list of his files
+        String[] a = temp.split(" ");
+        String username = a[1];
+        //get list of files user has rights to
+        ArrayList<FileEntry> userFilesList = server.getUserFilesList(username);
+        //printMsg("userFilesList["+username+"]{"+userFilesList.size()+"} : " + userFilesList);
+        ObjectOutputStream objectOutput = null;
+        try {
+            objectOutput = new ObjectOutputStream(socket.getOutputStream());
+        }catch(IOException e){
+            printMsg("list socket.getOutputStream: " + e.getMessage() + " " + e.getCause());
+        }
+        try{
+            objectOutput.writeObject(userFilesList);
+        } catch (IOException e) {
+            printMsg("list objectOutput.writeObject: " + e.getMessage() + " " + e.getCause());
+        }
+    }
+    private void sendFile(String temp){
+        String[] a = temp.split(" ");
+        String filename = a[1];
+        String owner = a[2];
+        String username = a[3];
+
+        //find file that user wants
+        FileEntry fileToSend = null;
+        for(FileEntry f : server.getFilesList()){
+            if(f.getFilename().equals(filename) && f.getOwner().equals(owner)){
+                fileToSend = f;
+                break;
+            }
+        }
+        if(fileToSend != null){
+            //check if user has right to file
+            boolean canSend = false;
+            if(!username.equals(fileToSend.getOwner())){
+                //check if file is shared to user
+                for(String shared : fileToSend.getOthers()){
+                    if(shared.equals(username)){
+                        canSend = true;
+                        break;
+                    }
+                }
+            }else{
+                canSend = true;
+            }
+            if(canSend){
+                String filePath = fileToSend.getPath();
+                long size = fileToSend.getSize();
+                out.println(size);
+                printMsg("sending "+fileToSend.getFilename()+":"+fileToSend.getOwner()+" to"+username+" ...");
+                //sending
+                //tell hdd controller that is new operation on this hdd
+                hddController.addOperation(fileToSend.getHddNo()-1);
+                DataOutputStream dos;
+                FileInputStream fis;
+                try {
+                    dos = new DataOutputStream(socket.getOutputStream());
+                    fis = new FileInputStream(filePath);
+
+                    byte[] buffer = new byte[1024*64];
+                    while (fis.read(buffer) > 0) {
+                        dos.write(buffer);
+                    }
+                    try {
+                        Thread.sleep(100);//1000
+                    }catch(Exception e){}
+                    printMsg("waiting for confirmation from client ... ");
+                    printMsg("client: "+in.nextLine());
+                    if(socket.isClosed()){
+                        System.out.println(filename + " socket closed");
+                    }else{
+                        fis.close();
+                        dos.close();
+                    }
+
+                }catch(Exception e){
+                    printMsg("Exception while sending file : " + e.getMessage());
+                }
+                printMsg("sent "+filename + " to client");
+            }else{
+                // tell user he cant download file
+                out.println(-1);
+            }
+            hddController.endOperation(fileToSend.getHddNo()-1);
+        }else{
+            //didn't find file user wants
+            out.println("-1");
+        }
+    }
+    private void shareFile(String temp){
+        String[] a = temp.split(" ");
+        String filename = a[1];
+        String owner = a[2];
+        String userToShare = a[3];
+        //file specified file
+        for(int i = 0 ; i < server.getFilesList().size();i++){
+            FileEntry f = server.getFilesList().get(i);
+            if(f.getFilename().equals(filename) && f.getOwner().equals(owner)){
+                f.share(userToShare);
+                server.getFilesList().set(i, f);
+                break;
+            }
+        }
+        printMsg(temp);
+        server.c.updateFilesForce(server.getFilesList());
+
+    }
+    private void unshareFile(String temp){
+        String[] a = temp.split(" ");
+        String filename = a[1];
+        String owner = a[2];
+        String userToUnshare = a[3];
+        //file specified file
+        for(int i = 0 ; i < server.getFilesList().size();i++){
+            FileEntry f = server.getFilesList().get(i);
+            if(f.getFilename().equals(filename) && f.getOwner().equals(owner)){
+                f.unshare(userToUnshare);
+                server.getFilesList().set(i, f);
+                break;
+            }
+        }
+        printMsg(temp);
+        server.c.updateFilesForce(server.getFilesList());
+    }
+    private void userLogin(String temp){
+        String[] a = temp.split(" ");
+        boolean logFlag = true;
+        for(Iterator<String> i = server.getUsersOnline().iterator();i.hasNext();){
+            if(i.next().equals(a[1])){
+                //user is already logged in
+                logFlag = false;
+                break;
+            }
+        }
+        if(logFlag)
+            server.getUsersOnline().add(a[1]);
+
+        //create folders for user on every drive
+        for(String hdd : hddPaths){
+            new File(hdd + File.separator + File.separator + a[1]).mkdirs();
+        }
+        printMsg("User " + a[1] + " has logged in");
+    }
+    private void userLogout(String temp){
+        String[] a = temp.split(" ");
+        for(Iterator<String> i = server.getUsersOnline().iterator();i.hasNext();){
+            if(i.next().equals(a[1])){
+                i.remove();
+                break;
+            }
+        }
+        printMsg("User " + a[1] + " has logged out");
+    }
+    private void sendUsersList(String temp){
+        ArrayList<String> users = new ArrayList<>();
+        for(Iterator<FileEntry> i = server.getFilesList().iterator(); i.hasNext();){
+            FileEntry x = i.next();
+            boolean exists = false;
+            for(String u : users){
+                if(u.equals(x.getOwner())){
+                    exists = true;
+                    break;
+                }
+            }
+            if(!exists)users.add(x.getOwner());
+        }
+        //sending object
+        ObjectOutputStream objectOutput = null;
+        try {
+            objectOutput = new ObjectOutputStream(socket.getOutputStream());
+        }catch(IOException e){
+            printMsg("list socket.getOutputStream: " + e.getMessage() + " " + e.getCause());
+        }
+        try{
+            objectOutput.writeObject(users);
+        } catch (IOException e) {
+            printMsg("list objectOutput.writeObject: " + e.getMessage() + " " + e.getCause());
+        }
+    }
+    private void deleteFile(String temp){
+        String[] a = temp.split(" ");
+        String fileName = a[1];
+        String fileOwner = a[2];
+        //find this file
+        for(int i = 0 ; i < server.getFilesList().size();i++){
+            FileEntry f = server.getFilesList().get(i);
+            if(f.getFilename().equals(fileName) && f.getOwner().equals(fileOwner)){
+                //found file
+                FileEntry fileToDelete = f;
+                //delete entry from global files list
+                server.getFilesList().remove(i);
+                //delete file from hdd
+                if(new File(fileToDelete.getPath()).delete()){
+                    //deleted successfully
+                    System.out.println("deleted successfully: "+fileToDelete.getFilename());
+                    out.println("deleted");
+                }else{
+                    //didn't delete
+                    System.out.println("didn't delete: "+fileToDelete.getFilename());
+                    out.println("not_deleted");
+                }
+                break;
+            }
+        }
     }
 }
