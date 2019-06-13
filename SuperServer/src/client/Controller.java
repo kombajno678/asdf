@@ -1,11 +1,10 @@
 package client;
-import client.game.BricksGame;
+
 import client.game.IntValue;
 import client.game.LongValue;
 import client.game.Sprite;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -22,41 +21,23 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-import jdk.nashorn.internal.ir.annotations.Ignore;
 import server.FileEntry;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.PrintWriter;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
-import client.ChatListener;
-
+/**
+ * Gui controller
+ */
 public class Controller {
-    private String username;// = "adamko";
-    private String localFolder;// = "local\\"+username;
-    private String ip;// = "127.0.0.1";
-    private int port;// = 55555;
-    private static int listenerPort;// = 55557;
-    private static int speakerPort;// = 55556;
+    private String username;
+    private String localFolder;
+    private String ip;
+    private int port;
+    private static int listenerPort;
+    private static int speakerPort;
     private ChatListener listener;
     private ChatSpeaker speaker;
-
-    //private ClientThread.UpdateFilesFromServerClass updater = null;
-    //private ClientThread.CheckForNewLocalFiles checker = null;
-
     private ClientThread.BackgroundTasks bg = null;
-
-
-
 
     public Controller(){}
 
@@ -153,7 +134,9 @@ public class Controller {
     @FXML
     private TextField textMsg;
 
-
+    /**
+     * contains code for game
+     */
     private void bricksGame(){
         Stage primaryStage = new Stage();
         primaryStage.setTitle( "BreakBricks" );
@@ -355,18 +338,36 @@ public class Controller {
         Platform.runLater(()-> primaryStage.show());
     }
 
+    /**
+     * launches game
+     * @param event button event
+     */
     @FXML void launchGame(Event event){
         event.consume();
         bricksGame();
     }
 
+    /**
+     * sets text on small label in lower left corner of window
+     * @param text new string to set
+     */
     @FXML void setTextLeft(String text){
         Platform.runLater(() -> textBotLeft.setText(text));
     }
+
+    /**
+     * appends text on small label in lower left corner of window
+     * @param text string to append
+     */
     @FXML void addTextLeft(String text){
         Platform.runLater(()->textBotLeft.setText(textBotLeft.getText()+text));
     }
 
+    /**
+     * opens a dialog window
+     * @param title title for window
+     * @param text text to be displayed in window
+     */
     @FXML void dialog(String title, String text){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -374,6 +375,11 @@ public class Controller {
         alert.setContentText(text);
         alert.showAndWait();
     }
+
+    /**
+     * checks what file is selected in table and invokes method in BackgroundTasks to delete this file
+     * @param event button event
+     */
     @FXML void delete(ActionEvent event){
         event.consume();
         FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
@@ -391,6 +397,13 @@ public class Controller {
         }
 
     }
+
+    /**
+     * adds username to mesage from input field
+     * invokes sendMsg on chat speaker to send this message
+     * clears input field
+     * @param event button event
+     */
     @FXML
     void sendMsg(ActionEvent event) {
         event.consume();
@@ -398,11 +411,20 @@ public class Controller {
         textMsg.setText("");
     }
 
+    /**
+     * displays chat message
+     * @param m message to be displayed
+     */
     @FXML
     synchronized void displayMsg(String m){
         textChat.appendText(m+"\n");
     }
 
+    /**
+     * invoked when "Connect" button is pressed
+     * validates values from input fields
+     * starts new threads: ClientThread.BackgroundTasks, ChatListener, ChatSpeaker
+     */
     public void connect() {
         //disable login form
         inputUsername.setDisable(true);
@@ -453,6 +475,11 @@ public class Controller {
         }
 
     }
+
+    /**
+     * invoked when "Disonnect" button is pressed
+     * tries to stop all threads
+     */
     public void disconnect() {
         bg.stop();
         listener.stop();
@@ -472,11 +499,22 @@ public class Controller {
         buttonUnshare.setDisable(true);
         textConsole.setDisable(true);
     }
+
+    /**
+     * invoked when "X" button is pressed
+     * tries to stop all threads
+     */
     public void shutdown(){
         if(bg != null)bg.stop();
         if(listener != null)listener.stop();
         if(speaker != null)speaker.stop();
     }
+
+    /**
+     * invoked when "Share" button is pressed
+     * checks what file is selected on list
+     * sends this file to method in BackgroundTasks
+     */
     public void share(){
         FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
         //file : selected file on list
@@ -485,6 +523,12 @@ public class Controller {
             bg.share(file);
         }
     }
+
+    /**
+     * invoked when "Unhare" button is pressed
+     * checks what file is selected on list
+     * sends this file to method in BackgroundTasks
+     */
     public void unshare(){
         FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
         //file : selected file on list
@@ -496,9 +540,18 @@ public class Controller {
         }
 
     }
+    /**
+     * invoked when "Clear console" button is pressed
+     * clears all text from console
+     */
     public void clear(){
         textConsole.clear();
     }
+
+    /**
+     * prints text on console
+     * @param a text to print
+     */
     public synchronized void printText(String a){
         try {
             textConsole.appendText(a + "\n");
@@ -506,9 +559,18 @@ public class Controller {
             System.out.println("printText Exception : " + e.getMessage());
         }
     }
+
+    /**
+     * clears list of files
+     */
     public void clearFiles(){
         tableFiles.getItems().clear();
     }
+
+    /**
+     * updates list of files
+     * @param f new list of files
+     */
     public void updateFiles(ArrayList<FileEntry> f) {
         ObservableList<FileEntry> listForGui = FXCollections.observableArrayList(f);
         if(tableFiles.getItems().size() > 0){
@@ -535,7 +597,6 @@ public class Controller {
                 }
                 if(!found){
                     tableFiles.getItems().remove(iGui);
-                    //fGui.remove();
                 }else{
                     tableFiles.getItems().set(iGui, fold);
                 }
@@ -548,29 +609,6 @@ public class Controller {
                 tableFiles.getItems().addAll(fnew);
 
         Platform.runLater(() -> labelFiles.setText(""+tableFiles.getItems().size()));
-    }
-
-}
-
-final class JavaProcess {
-
-    private JavaProcess() {}
-
-    public static int exec(Class klass) throws IOException,
-            InterruptedException {
-        String javaHome = System.getProperty("java.home");
-        String javaBin = javaHome +
-                File.separator + "bin" +
-                File.separator + "java";
-        String classpath = System.getProperty("java.class.path");
-        String className = klass.getName();
-
-        ProcessBuilder builder = new ProcessBuilder(
-                javaBin, "-cp", classpath, className);
-
-        Process process = builder.inheritIO().start();
-        process.waitFor();
-        return process.exitValue();
     }
 
 }

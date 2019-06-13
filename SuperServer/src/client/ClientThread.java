@@ -1,22 +1,30 @@
 package client;
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+
 
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.Pattern;
-//import java.util.concurrent.ThreadLocalRandom;
-
 import javafx.scene.control.Alert;
 import javafx.scene.control.ChoiceDialog;
 import server.FileEntry;
 
+/**
+ *
+ * contains other classes
+ *
+ */
 class ClientThread {
     public ClientThread(){}
 
+    /**
+     * does all background tasks
+     * checks for new files on disk
+     * asks server for files
+     * downloads and uploads files
+     * updates gui
+     */
     static class BackgroundTasks implements Runnable{
         private Thread t;
         private boolean loop;
@@ -33,6 +41,14 @@ class ClientThread {
         private int waitTime = 5;
         private boolean loggedIn = false;
 
+        /**
+         *
+         * @param localFolder folder in which user folders will be created
+         * @param username login
+         * @param ip server's ip address
+         * @param port server's port
+         * @param c reference to gui controller
+         */
         BackgroundTasks(String localFolder, String username, String ip, int port, Controller c) {
             this.localFolder = localFolder;
             this.username = username;
@@ -147,10 +163,19 @@ class ClientThread {
             closeSocket();
             System.out.println("BG thread ended");
         }
+
+        /**
+         * tries to stop thread
+         */
         public void stop(){
             loop = false;
             t.interrupt();
         }
+
+        /**
+         * gets list of all users from server
+         * @return server's list of users
+         */
         public ArrayList<String> getUsersFromServer(){
             ArrayList<String> list = null;
             try {
@@ -167,6 +192,12 @@ class ClientThread {
             }
             return list;
         }
+        /**
+         * opens new dialog window
+         * asks from whom take away rights to given file
+         * sends "unshare" command to server
+         * @param f file to unshare
+         */
         public void unshare(FileEntry f){
             System.out.println("file to unshare : "+f);
             if(f.getOwner().equals(username)){
@@ -184,13 +215,20 @@ class ClientThread {
                         //c.updateFilesForce(listForGui);
                     });
                 }else{
-                    infoDialog("SuperClient - info", "There's nobody from whom you can unshare this file.");
+                    c.dialog("SuperClient - info", "There's nobody from whom you can unshare this file.");
                 }
 
             }else{
-                infoDialog("SuperClient - info", "You can't share somebody else's file");
+                c.dialog("SuperClient - info", "You can't share somebody else's file");
             }
         }
+
+        /**
+         * opens new dialog window
+         * asks from to whom give rights to given file
+         * sends "share" command to server
+         * @param f file to share
+         */
         public void share(FileEntry f){
             System.out.println("file to share : "+f);
             if(f.getOwner().equals(username)){
@@ -213,13 +251,19 @@ class ClientThread {
                         out.println("share "+f.getFilename() +" "+f.getOwner()+" "+letter);
                     });
                 }else{
-                    infoDialog("SuperClient - info", "There's nobody to share this file to.");
+                    c.dialog("SuperClient - info", "There's nobody to share this file to.");
                 }
 
             }else{
-                infoDialog("SuperClient - info", "You can't share somebody else's file");
+                c.dialog("SuperClient - info", "You can't share somebody else's file");
             }
         }
+
+        /**
+         * sends "delete" commands to server
+         * if server could delete file then deletes file from drive
+         * @param f file to delete
+         */
         public void delete(FileEntry f){
             //send delete command to server
             out.println("delete "+f.getFilename()+" "+f.getOwner());
@@ -243,6 +287,11 @@ class ClientThread {
             }
         }
 
+        /**
+         * prints list
+         * @param list list to print
+         * @param name name of list
+         */
         private void printList(ArrayList<FileEntry> list, String name){
             System.out.print(name + "{"+list.size()+"} : ");
             for(FileEntry f : list){
@@ -250,6 +299,10 @@ class ClientThread {
             }
             System.out.println();
         }
+
+        /**
+         * creates socket
+         */
         private void createSocket(){
             try {
                 socket = new Socket(ip, port);
@@ -265,6 +318,10 @@ class ClientThread {
                 }
             }
         }
+
+        /**
+         * tries to close socket
+         */
         private void closeSocket(){
             if(socket != null){
                 out.println("exit");
@@ -275,6 +332,11 @@ class ClientThread {
                 }
             }
         }
+
+        /**
+         * tries to login to server
+         * @return true if login was successful
+         */
         private boolean login(){
             try{
                 out.println("login "+username);
@@ -283,9 +345,18 @@ class ClientThread {
                 return false;
             }
         }
+
+        /**
+         * logs out from server
+         */
         private void logout(){
             if(socket != null)out.println("logout "+username);
         }
+
+        /**
+         * creates list of files in local folder
+         * @return list of file in local filder
+         */
         private ArrayList<FileEntry> getFilesHdd(){
             ArrayList<FileEntry> filesHdd = new ArrayList<>();
 
@@ -313,6 +384,13 @@ class ClientThread {
             }
             return filesHdd;
         }
+
+        /**
+         * used in getFilesHdd
+         * lists all files/folders in folder
+         * @param folder folder to scan for files/folders
+         * @return list of all files and folder in folder
+         */
         private ArrayList<String> listFilesForFolder(final File folder) {
             ArrayList<String> list = new ArrayList<String>();
             try {
@@ -328,6 +406,11 @@ class ClientThread {
             }
             return list;
         }
+
+        /**
+         * gets from server list of all files user has rights to(owns them or they are shared to him)
+         * @return list of files user has rights to
+         */
         private ArrayList<FileEntry> getFilesServer(){
             ArrayList<FileEntry> list = new ArrayList<>();
             if(socket == null)
@@ -346,6 +429,11 @@ class ClientThread {
             }
             return list;
         }
+
+        /**
+         * creates fils of files to download
+         * @return fils tof files to download
+         */
         private ArrayList<FileEntry> getDownloadList(){
             ArrayList<FileEntry> list = (ArrayList<FileEntry>)filesServer.clone();
             for(Iterator<FileEntry> i = list.iterator();i.hasNext();){
@@ -360,6 +448,10 @@ class ClientThread {
             }
             return list;
         }
+        /**
+         * creates fils of files to upload
+         * @return fils tof files to upload
+         */
         private ArrayList<FileEntry> getUploadList(){
             ArrayList<FileEntry> list = (ArrayList<FileEntry>)filesLocal.clone();
             //files local - files on server
@@ -381,6 +473,11 @@ class ClientThread {
             }
             return list;
         }
+
+        /**
+         * waits for all tasks in thread pool to finish
+         * @param threadPool thread pool with tasks
+         */
         private void awaitTerminationAfterShutdown(ExecutorService threadPool) {
             threadPool.shutdown();
             try {
@@ -392,6 +489,12 @@ class ClientThread {
                 Thread.currentThread().interrupt();
             }
         }
+
+        /**
+         * downloads files
+         * @param list list of files to download
+         * @return number of files downloaded
+         */
         private int download(ArrayList<FileEntry> list){
             if(socket == null)return -1;
             int n = list.size();
@@ -413,6 +516,11 @@ class ClientThread {
             System.out.println("download> Downloaded "+n+" files!");
             return n;
         }
+        /**
+         * uploads files
+         * @param list list of files to upload
+         * @return number of files uploaded
+         */
         private int upload(ArrayList<FileEntry> list){
             if(socket == null)return -1;
             int n = list.size();
@@ -435,17 +543,11 @@ class ClientThread {
             return n;
         }
 
-        private void infoDialog(String title, String text){
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle(title);
-            alert.setHeaderText(null);
-            alert.setContentText(text);
-            alert.showAndWait();
-        }
-
     }
 
-
+    /**
+     * downloads one file
+     */
     static class FileDownloadClass implements Runnable{
         private Thread t;
         private FileEntry file;
@@ -453,6 +555,16 @@ class ClientThread {
         private int port;
         private String localFolder, username;
         private Controller c;
+
+        /**
+         *
+         * @param c reference to gui controller
+         * @param ip server's ip address
+         * @param port server's port
+         * @param username login
+         * @param file file to download
+         * @param localFolder path to local folder
+         */
         FileDownloadClass(Controller c, String ip, int port, String username, FileEntry file, String localFolder) {
             this.ip = ip;
             this.port = port;
@@ -547,15 +659,12 @@ class ClientThread {
                 System.out.println("socketFile: failed to close");
             }
 
-
         }
-        /*public void start(){
-            if (t == null) {
-                t = new Thread (this);
-                t.start ();
-            }
-        }*/
     }
+
+    /**
+     * uploads one file
+     */
     static class FileUploadClass implements Runnable{
         public Thread t;
         FileEntry file;
@@ -564,8 +673,18 @@ class ClientThread {
         int port;
         Controller c;
         BackgroundTasks bg;
-        FileUploadClass(BackgroundTasks bg, Controller c, String i, int p, FileEntry file, String localFolder, String username) {
-            ip = i;
+
+        /**
+         * @param bg reference to BackgroundTasks thread
+         * @param c reference to gui controller
+         * @param ip server's ip address
+         * @param p server's port
+         * @param file file to upload
+         * @param localFolder path to local folder
+         * @param username login
+         */
+        FileUploadClass(BackgroundTasks bg, Controller c, String ip, int p, FileEntry file, String localFolder, String username) {
+            this.ip = ip;
             port = p;
             this.file = file;
             this.c = c;
@@ -582,7 +701,6 @@ class ClientThread {
             String filename = file.getFilename();
             //String owner = file.getOwner();
             //String destination = localFolder +File.separator + File.separator+ owner;
-
             System.out.println(t.getId() + "\\" +filename + " sender thread start");
             Socket socketFile = null;
             do{
@@ -603,10 +721,7 @@ class ClientThread {
             }catch (IOException e){
                 System.out.println(t.getId() + "\\" +"IOException: failed to get output stream from server");
             }
-
             long fsize = file.getSize();
-
-
             c.printText("Uploading file: " + filename +" ("+ fsize + "B) ...");
             System.out.println("file " + filename + " " + fsize + " " + username);
             out.println("file " + filename + " " + fsize + " " + username);
@@ -623,21 +738,12 @@ class ClientThread {
                 while (fis.read(buffer) > 0) {
                     dos.write(buffer);
                 }
-                /*
-                try {
-                    Thread.sleep(10000);
-                }catch(Exception e){}*/
-
                 System.out.println(t.getId() + "\\" +filename + " waiting for confirmation from server ... ");
-                //if(in.hasNextLine()){
-                //out.println("sent");
-
                 String serverMsg = in.nextLine();
                 if(serverMsg.matches("nope")){
                     //client tried to send file that is already on server
                 }else{
                     System.out.println(t.getId() + "\\" +filename + " server: "+serverMsg);
-                    //c.printText("File "+ filename +" uploaded to server!");
                 }
                 if(socketFile.isClosed()){
                     System.out.println(filename + " socket closed");
@@ -661,11 +767,6 @@ class ClientThread {
             }
             System.out.println(t.getId() + "\\" +filename + " sender thread stop");
         }
-        /*public void start(){
-            if (t == null) {
-                t = new Thread (this);
-                t.start ();
-            }
-        }*/
+
     }
 }

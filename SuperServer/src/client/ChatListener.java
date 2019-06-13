@@ -1,9 +1,11 @@
 package client;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
+/**
+ * Listens for any new chat messages from server and sends them to gui
+ */
 class ChatListener implements Runnable{
     private Thread t;
     private boolean loop;
@@ -13,6 +15,11 @@ class ChatListener implements Runnable{
     private Scanner in;
     private Controller c;
 
+    /**
+     * @param ip server's ip
+     * @param port server's chat speaker port
+     * @param c reference to gui controller
+     */
     ChatListener(String ip, int port, Controller c) {
         this.ip = ip;
         this.port = port;
@@ -46,12 +53,20 @@ class ChatListener implements Runnable{
         }
         System.out.println("ChatListener end");
     }
+
+    /**
+     * starts thread
+     */
     public void start(){
         if (t == null) {
             t = new Thread (this, "ChatListener");
             t.start ();
         }
     }
+
+    /**
+     * tries to stop thread
+     */
     public void stop(){
         try {
             //new PrintWriter(socket.getOutputStream()).println("!exit");
@@ -61,6 +76,10 @@ class ChatListener implements Runnable{
         loop = false;
         t.interrupt();
     }
+
+    /**
+     * creates socket
+     */
     private void createSocket(){
         try {
             socket = new Socket(ip, port);
