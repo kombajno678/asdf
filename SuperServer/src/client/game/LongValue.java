@@ -1,5 +1,4 @@
-package client;
-
+package client.game;
 public class LongValue
 {
     public long value;

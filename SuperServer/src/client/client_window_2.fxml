@@ -93,6 +93,7 @@
    <left>
       <VBox fx:id="formBox" prefHeight="573.0" prefWidth="169.0" spacing="5.0" style="-fx-background-color: #444;" BorderPane.alignment="CENTER">
          <children>
+            <Button fx:id="buttonGame" mnemonicParsing="false" onAction="#launchGame" prefHeight="72.0" prefWidth="170.0" text="Launch game" />
             <Region VBox.vgrow="ALWAYS" />
             <Label text="Username:" />
             <TextField fx:id="inputUsername" promptText="User name" text="adamko" />
