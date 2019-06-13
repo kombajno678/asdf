@@ -27,6 +27,7 @@ class ClientThread {
         private Controller c;
         private Socket socket;
         private PrintWriter out;
+        private Scanner in;
         private String ip;
         private int port;
         private int waitTime = 5;
@@ -59,7 +60,6 @@ class ClientThread {
             int n = 2;
             while (loop) {
                 n--;
-
                 if(socket == null)createSocket();
                 if(socket == null || socket.isClosed()){
                     c.printText("Can't connect to server");
@@ -124,17 +124,20 @@ class ClientThread {
                 printList(listForGui, "listForGui");
 
                 if(n <= 0){
+                    c.setTextLeft("Syncing with server ... downloading ");
                     n = 5;
                     if(downloadList.size() > 0 && socket != null){
                         printList(downloadList, "downloadList");
                         download(downloadList);
                     }
+                    c.setTextLeft("Syncing with server ... uploading ");
                     if(uploadList.size() > 0  && socket != null){
                         printList(uploadList, "uploadList");
                         upload(uploadList);
                     }
                 }
                 System.out.println("-------------------------- sync with server in "+n*waitTime+"s --------------------");
+                c.setTextLeft("Next sync with server in "+n*waitTime+"s");
                 try{
                     Thread.sleep(waitTime * 1000);
                 }catch(InterruptedException e){}
@@ -150,8 +153,8 @@ class ClientThread {
         }
         public ArrayList<String> getUsersFromServer(){
             ArrayList<String> list = null;
-            out.println("getusers");
             try {
+                out.println("getusers");
                 ObjectInputStream objectInput = new ObjectInputStream(socket.getInputStream()); //Error Line!
                 try {
                     Object object = objectInput.readObject();
@@ -159,7 +162,7 @@ class ClientThread {
                 } catch (ClassNotFoundException e) {
                     //e.printStackTrace();
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 //e.printStackTrace();
             }
             return list;
@@ -193,6 +196,10 @@ class ClientThread {
             if(f.getOwner().equals(username)){
                 //open new window and ask to whom share this file
                 List<String> choices = getUsersFromServer();
+                if(choices == null){
+                    //cant get users from server
+                    return;
+                }
                 choices.removeAll(f.getOthers());
                 choices.remove(username);
                 if(choices.size() > 0){
@@ -214,40 +221,26 @@ class ClientThread {
             }
         }
         public void delete(FileEntry f){
-
-            //send delete to server
+            //send delete command to server
             out.println("delete "+f.getFilename()+" "+f.getOwner());
             //get msg from server, if it deleted file
-            //todo:check
-            //if it didnt, dont delete file here
-            //delete file from hdd
-            if(new File(f.getPath()).delete()){
-                System.out.println("deleted successfully: "+f.getFilename());
-            }else {
-                System.out.println("didn't delete: " + f.getFilename());
+            String msg = "";
+            if(in.hasNextLine()) {
+                msg = in.nextLine();
             }
-        }
-        public void changeFileName(String oldFileName, String newFileName){
-            //file old file in list
-            //change name in entry
-            //nvm, only this:
-            //change name of file on disk
-            /*
-            File oldFile = new File(localFolder + File.separator + File.separator + oldFileName);
-            if(!oldFile.exists()){
-                System.out.println("!oldFile.exists()");
-            }
-            File newFile = new File(localFolder + File.separator + File.separator + newFileName);
-            if(newFile.exists()){
-                System.out.println("("+oldFileName+"->"+newFileName+")file already exists, not good, throw sth maybe");
-            }else{
-                boolean success = oldFile.renameTo(newFile);
-                if(!success){
-                    System.out.println("("+oldFileName+"->"+newFileName+")not good, couldn't change name");
+            if(msg.equals("deleted")){
+                //delete file from hdd
+                if(new File(f.getPath()).delete()){
+                    //System.out.println("deleted successfully: "+f.getFilename());
+                    c.printText("File: \""+f.getFilename()+"\" has been deleted");
+                }else {
+                    System.out.println("didn't delete: " + f.getFilename());
+                    c.printText("Error: File: \""+f.getFilename()+"\" has not been deleted (could't delete file from local folder)");
                 }
+            }else{
+                //server couldn't delete file
+                c.printText("Error: File: \""+f.getFilename()+"\" has not been deleted (server could't delete file)");
             }
-            System.out.println("Changed " + oldFileName + " to: " + newFileName);
-            */
         }
 
         private void printList(ArrayList<FileEntry> list, String name){
@@ -261,14 +254,12 @@ class ClientThread {
             try {
                 socket = new Socket(ip, port);
             } catch (Exception e) {
-                //if(!loop)break;
                 System.out.println("BG> Can't create socket.");
-                //c.printText("CheckForNewLocalFiles> Can't connect to server. Trying again in 10s");
-
             }
             if(socket != null){
                 try {
                     out = new PrintWriter(socket.getOutputStream(), true);
+                    in = new Scanner(socket.getInputStream());
                 } catch (IOException e) {
                     System.out.println("BG> Failed to get output stream from server");
                 }
@@ -285,19 +276,15 @@ class ClientThread {
             }
         }
         private boolean login(){
-            //if(socket == null)return false;
             try{
                 out.println("login "+username);
                 return true;
             }catch(Exception e){
                 return false;
             }
-
         }
-        private boolean logout(){
-            if(socket == null)return false;
-            out.println("logout "+username);
-            return true;
+        private void logout(){
+            if(socket != null)out.println("logout "+username);
         }
         private ArrayList<FileEntry> getFilesHdd(){
             ArrayList<FileEntry> filesHdd = new ArrayList<>();
@@ -408,21 +395,18 @@ class ClientThread {
         private int download(ArrayList<FileEntry> list){
             if(socket == null)return -1;
             int n = list.size();
-            System.out.println("download> files to download:"+list);
+            System.out.println("download> Files to download:"+list);
             //create thread pool
             ExecutorService poolDownload = Executors.newFixedThreadPool(n);
             System.out.println("download> Downloading "+n+" files ...");
-            //c.printText("Updater> Downloading new files ...");
+            c.addTextLeft(n+"files ");
             Iterator<FileEntry> i = list.iterator();
             while (i.hasNext()) {
                 FileEntry f = i.next();
                 poolDownload.execute(new ClientThread.FileDownloadClass(c, ip, port, username, f, localFolder));
-                //f.setStatus("local+server");//probs wont work :(
                 try{
                     t.sleep(100);
-                }catch(InterruptedException e){
-
-                }
+                }catch(InterruptedException e){}
             }
             System.out.println("download> Waiting for "+n+" files to download ... ");
             awaitTerminationAfterShutdown(poolDownload);
@@ -436,20 +420,16 @@ class ClientThread {
             //create thread pool
             ExecutorService poolUpload = Executors.newFixedThreadPool(n);
             System.out.println("upload> uploading "+n+" file(s) ...");
-            //c.printText("Updater> Downloading new files ...");
+            c.addTextLeft(n+"files ");
             Iterator<FileEntry> i = list.iterator();
             while (i.hasNext()) {
                 FileEntry f = i.next();
                 poolUpload.execute(new ClientThread.FileUploadClass(this, c, ip, port, f, localFolder, username));
-
-                //f.setStatus("local+server");//probs wont work :(
                 try{
                     t.sleep(100);
-                }catch(InterruptedException e){
-
-                }
+                }catch(InterruptedException e){}
             }
-            //System.out.println("upload> Waiting for "+n+" files to upload ... ");
+            System.out.println("upload> Waiting for "+n+" files to upload ... ");
             awaitTerminationAfterShutdown(poolUpload);
             System.out.println("upload> uploaded "+n+" file(s)!");
             return n;

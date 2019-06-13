@@ -45,9 +45,21 @@ public class Controller {
         columnAllOwner.setCellValueFactory(new PropertyValueFactory<>("owner"));
         columnAllOthers.setCellValueFactory(new PropertyValueFactory<>("others"));
         updateOperations(Arrays.asList(0, 0, 0, 0, 0));
+
         center.setDisable(true);
         bottom.setDisable(true);
         left.setDisable(true);
+        buttonStop.setDisable(true);
+
+        //send button is disabled when no test in msg field is entered
+        textMsg.textProperty().addListener((observable, oldValue, newValue) ->{
+            if(textMsg.getText().length() < 1){
+                buttonSend.setDisable(true);
+            }else{
+                buttonSend.setDisable(false);
+            }
+        });
+
     }
 
 
@@ -88,6 +100,7 @@ public class Controller {
 
     @FXML private Button buttonStart;
     @FXML private Button buttonStop;
+    @FXML private Button buttonSend;
 
     @FXML private TextField inputPort;
     @FXML private TextField inputPath;
@@ -101,11 +114,11 @@ public class Controller {
 
     @FXML private void sendMsg(){
         if(chatServer != null)chatServer.receive("SERVER>"+textMsg.getText());
-        textMsg.setText("");
+        textMsg.clear();
     }
     @FXML
     void displayMsg(String m){
-        textChat.setText(textChat.getText()+"\n"+m);
+        textChat.appendText(m+"\n");
     }
 
     @FXML public void updateUsersOnline(ObservableList<String> users){
@@ -116,7 +129,7 @@ public class Controller {
     }
     @FXML public void updateFiles(ArrayList<FileEntry> f){
         //update all files tab
-        System.out.println(" > update all files tab");
+        //System.out.println(" > update all files tab");
         //-------------------------------------
         ObservableList<FileEntry> listForGuiAll = FXCollections.observableArrayList();
         List<Integer> numberOfFiles = Arrays.asList(0, 0, 0, 0, 0);
@@ -276,7 +289,6 @@ public class Controller {
             validFlag = false;
         }
         if(validFlag){
-            //ArrayList<String> hdd = new ArrayList<>();
             hdd.add(path + File.separator + File.separator + hdd1);
             hdd.add(path + File.separator + File.separator + hdd2);
             hdd.add(path + File.separator + File.separator + hdd3);
@@ -286,28 +298,24 @@ public class Controller {
             hddController = new HddController(this);
             server = new ServerThread(port, nThreads, path, hdd, hddController, this);
             updater = new ServerThread.FileListUpdater(hdd, this, server, 10);
-            chatServer = new ChatServer(this);
+            chatServer = new ChatServer(port, this);
             chatServer.start();
             updater.start();
             //wait till updater finishes init
             while(!updater.initialized){
-                //System.out.println("waiting for updater to initialize ...");
                 try{
                     Thread.sleep(100);
                 }catch(InterruptedException e){}
             }
             server.start();
-
             center.setDisable(false);
             bottom.setDisable(false);
             left.setDisable(false);
-
-
         }else{
             buttonStart.setDisable(false);
             inputPath.setDisable(false);
             inputPort.setDisable(false);
-            dialog("SuperServer - error", "sth went wrong");
+            dialog("SuperServer - error", "Something went wrong. Check if entered values are correct.");
         }
     }
 
@@ -330,6 +338,8 @@ public class Controller {
     }
 
     public void shutdown(){
+        chatServer.receive("!!exit");
+
         if(server != null)server.stop();
         if(updater != null)updater.stop();
         if(chatServer != null)chatServer.stop();

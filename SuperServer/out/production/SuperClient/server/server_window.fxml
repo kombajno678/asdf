@@ -47,7 +47,7 @@
             <Label alignment="CENTER" prefHeight="17.0" prefWidth="318.0" text="Connected users:" />
             <ListView fx:id="listUsers" prefHeight="147.0" prefWidth="178.0" VBox.vgrow="NEVER" />
             <Separator prefWidth="200.0" />
-            <TextArea fx:id="textChat" prefHeight="175.0" prefWidth="315.0" text="Welcome to chat" VBox.vgrow="ALWAYS" />
+            <TextArea fx:id="textChat" prefHeight="175.0" prefWidth="315.0" text="Welcome to chat" wrapText="true" VBox.vgrow="ALWAYS" />
             <HBox>
                <children>
                   <TextField fx:id="textMsg" prefHeight="25.0" prefWidth="249.0" />

@@ -8,9 +8,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 public class ClientMain extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{

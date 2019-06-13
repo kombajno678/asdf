@@ -11,19 +11,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 class ChatServer implements Runnable{
-    private static int listenerPort = 55556;
-    private static int speakerPort = 55557;
+    private static int listenerPort;
+    private static int speakerPort;
     private Thread t;
-    private boolean loop = true;
     private ThreadPoolListener listenerThread;
     private ThreadPoolSpeaker speakerThread;
-
     private Controller c;
-
     private ArrayList<String> msgs;
 
-    ChatServer(Controller c) {
+    public boolean isRunning;
+
+    ChatServer(int port, Controller c) {
         this.c = c;
+        listenerPort = port + 1;
+        speakerPort = port + 2;
         msgs = new ArrayList<>();
     }
 
@@ -40,7 +41,7 @@ class ChatServer implements Runnable{
             listenerThread.t.join();
             speakerThread.t.join();
         }catch(Exception e){}
-        System.out.println("ChatServer ended");
+        System.out.println("ChatServer stopped");
     }
     public synchronized void receive(String msg){
         msgs.add(msg);
@@ -50,13 +51,14 @@ class ChatServer implements Runnable{
         return msgs;
     }
     public void start(){
+        isRunning = true;
         if (t == null) {
             t = new Thread (this, "ChatServer_Thread");
             t.start ();
         }
     }
     public void stop(){
-        loop = false;
+        isRunning = false;
         listenerThread.stop();
         speakerThread.stop();
         t.interrupt();
@@ -206,12 +208,12 @@ class ConnectionListener implements Runnable{
             t = new Thread(this, "ConnectionListener_"+socket.getPort());
             //t.start();
         }
-        System.out.println("ConnectionSpeaker thread started");
+        //System.out.println("ConnectionSpeaker thread started");
 
     }
     @Override
     public void run() {
-        System.out.println("ConnectionListener Running "+t.getId());
+        //System.out.println("ConnectionListener Running "+t.getId());
         InputStream input = null;
         Scanner in = null;
         try{
@@ -228,16 +230,18 @@ class ConnectionListener implements Runnable{
             if(in.hasNextLine()){
                 String msg = in.nextLine();
                 if(msg.equals("!exit")){
-                    System.out.println("===========================================");
+                    //System.out.println("===========================================");
                     this.stop();
                 }else {
-                    System.out.println(msg);
-                    cm.receive(msg);
+                    if(msg.length() <= 50) {
+                        System.out.println(msg);
+                        cm.receive(msg);
+                    }
                 }
             }
 
         }
-        System.out.println("ConnectionListener Stopped "+t.getId());
+        //System.out.println("ConnectionListener Stopped "+t.getId());
     }
     public void stop(){
         loop = false;
@@ -255,11 +259,7 @@ class ConnectionSpeaker implements Runnable{
     private boolean loop = true;
     private PrintWriter out;
     private ChatServer cm;
-
-    public boolean isRunning;
-
     ConnectionSpeaker(Socket socket, ChatServer cm){
-        isRunning = true;
         this.socket = socket;
         this.cm = cm;
         if (t == null) {
@@ -269,19 +269,17 @@ class ConnectionSpeaker implements Runnable{
 
     @Override
     public void run() {
-        System.out.println("ConnectionSpeaker Running "+t.getId());
+        //System.out.println("ConnectionSpeaker Starting "+t.getId());
         out = null;
         try{
             out = new PrintWriter(socket.getOutputStream(), true);
         }catch (IOException e){
-            System.out.println("ConnectionSpeaker : IOException: failed to get output stream from client");
+            System.out.println("ConnectionSpeaker : IOException: failed to get stream from client");
         }
         int n = 0;
-        while(loop & cm != null){
+        //System.out.println("ConnectionSpeaker Running "+t.getId());
+        while(loop & cm.isRunning){
             //if stream has next line
-            if(socket.isClosed()){
-                break;
-            }
             if(cm != null){
                 ArrayList<String> msgs = cm.send();
                 if(n != msgs.size()){
@@ -299,17 +297,16 @@ class ConnectionSpeaker implements Runnable{
             else {
                 this.stop();
             }
-
-
             try{
                 Thread.sleep(1000);
-            }catch(Exception e){}
+            }catch(Exception e){
+                break;
+            }
         }
-        System.out.println("ConnectionSpeaker stopped "+t.getId());
-
-
+        //System.out.println("ConnectionSpeaker stopped "+t.getId());
     }
     public void speak(String msg){
+        //System.out.println("ConnectionSpeaker SPEAKING "+t.getId());
         try{
             out.println(msg);
         }catch(Exception e){
@@ -318,12 +315,15 @@ class ConnectionSpeaker implements Runnable{
         }
     }
     public void stop(){
+        //System.out.println("ConnectionSpeaker stopping "+t.getId());
+
         loop = false;
         try{
             socket.close();
-        }catch(Exception e){}
+        }catch(Exception e){
+            System.out.println("ConnectionSpeaker Exception "+e.getMessage());
+        }
         t.interrupt();
-
     }
 
 

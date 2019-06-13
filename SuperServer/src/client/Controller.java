@@ -7,6 +7,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.VBox;
 import jdk.nashorn.internal.ir.annotations.Ignore;
 import server.FileEntry;
 
@@ -30,17 +31,17 @@ public class Controller {
     private String localFolder;// = "local\\"+username;
     private String ip;// = "127.0.0.1";
     private int port;// = 55555;
-    private static int listenerPort = 55557;
-    private static int speakerPort = 55556;
+    private static int listenerPort;// = 55557;
+    private static int speakerPort;// = 55556;
+    private ChatListener listener;
+    private ChatSpeaker speaker;
+
     //private ClientThread.UpdateFilesFromServerClass updater = null;
     //private ClientThread.CheckForNewLocalFiles checker = null;
 
     private ClientThread.BackgroundTasks bg = null;
 
-    //chat
-    private Socket socket;
-    private PrintWriter out;
-    private ChatListener listener;
+
 
 
     public Controller(){}
@@ -53,20 +54,44 @@ public class Controller {
         inputIP.setDisable(false);
         inputPort.setDisable(false);
         inputUsername.setDisable(false);
-
-        tableFiles.setDisable(true);
+        centerBox.setDisable(true);
         buttonDisconnect.setDisable(true);
-        buttonClear.setDisable(true);
-        textConsole.setDisable(true);
-
         columnNames.setCellValueFactory(new PropertyValueFactory<>("filename"));
         columnSize.setCellValueFactory(new PropertyValueFactory<>("size"));
         columnOwner.setCellValueFactory(new PropertyValueFactory<>("owner"));
         columnShared.setCellValueFactory(new PropertyValueFactory<>("others"));
         columnStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
 
+        //buttons share, unshare, delete are disabled when list is not focused
+        tableFiles.focusedProperty().addListener((obs, oldVal, newVal) ->{
+                if(newVal){
+                    //sth is selected
+                    buttonShare.setDisable(false);
+                    buttonUnshare.setDisable(false);
+                    buttonDelete.setDisable(false);
+                }else{
+                    //nothing is selected
+                    buttonShare.setDisable(true);
+                    buttonUnshare.setDisable(true);
+                    buttonDelete.setDisable(true);
+                }
+        });
+
+        //send button is disabled when no test in msg field is entered
+        textMsg.textProperty().addListener((observable, oldValue, newValue) ->{
+            if(textMsg.getText().length() < 1){
+                buttonSend.setDisable(true);
+            }else{
+                buttonSend.setDisable(false);
+            }
+        });
+
     }
 
+    @FXML
+    private VBox formBox;
+    @FXML
+    private VBox centerBox;
     @FXML
     private Label textBotLeft;
     @FXML
@@ -114,14 +139,21 @@ public class Controller {
     @FXML
     private TextField textMsg;
 
-    @FXML void Dialog(String title, String text){
+    @FXML void setTextLeft(String text){
+        Platform.runLater(() -> textBotLeft.setText(text));
+    }
+    @FXML void addTextLeft(String text){
+        Platform.runLater(()->textBotLeft.setText(textBotLeft.getText()+text));
+    }
+
+    @FXML void dialog(String title, String text){
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(text);
         alert.showAndWait();
     }
-    @FXML void Delete(ActionEvent event){
+    @FXML void delete(ActionEvent event){
         event.consume();
         FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
         //file : selected file on list
@@ -134,112 +166,83 @@ public class Controller {
                 bg.delete(file);
             }
         }else{
-            Dialog("SuperClient - info","You can't delete file that's not yours.");
+            dialog("SuperClient - info","You can't delete file that's not yours.");
         }
 
     }
     @FXML
     void sendMsg(ActionEvent event) {
         event.consume();
-        if(out == null)createChatSpeaker();
-        String m = textMsg.getText();
+        speaker.sendMsg(username+"> "+textMsg.getText());
         textMsg.setText("");
-        //speaker.sendMsg(msg);
-        String msg = username+"> "+m;
-        if(out != null)out.println(msg);
-        //System.out.println(" ... (sent msg:"+msg+")");
     }
 
     @FXML
-    void displayMsg(String m){
-        Platform.runLater(() -> {
-            textChat.setText(textChat.getText()+"\n"+m);
-            textChat.setScrollTop(Double.MAX_VALUE);
-        });
-
-    }
-    void createChatSpeaker(){
-        //this instead of speaker thread
-        displayMsg("Connecting to chat server ...");
-        try {
-            socket = new Socket(ip, speakerPort);
-        } catch (Exception e) {
-            System.out.println("Listener> Can't create socket.");
-        }
-        out = null;
-        if(socket != null){
-            try {
-                out = new PrintWriter(socket.getOutputStream(), true);
-                displayMsg("Connected!");
-            } catch (IOException e) {
-                System.out.println("Listener> Failed to get output stream from server");
-            }
-        }
-    }
-    void closeChatSpeaker(){
-        try{
-            out.println("!exit");
-            socket.close();
-        }catch(Exception e){}
+    synchronized void displayMsg(String m){
+        textChat.appendText(m+"\n");
     }
 
-    public void Connect() {
-        boolean validFlag = false;
+    public void connect() {
+        //disable login form
+        inputUsername.setDisable(true);
+        inputPath.setDisable(true);
+        inputIP.setDisable(true);
+        inputPort.setDisable(true);
+        inputUsername.setDisable(true);
+        buttonConnect.setDisable(true);
+        boolean validFlag;
         try {
             username = inputUsername.getText();
             localFolder = inputPath.getText();
             ip = inputIP.getText();
             port = Integer.parseInt(inputPort.getText());
+            speakerPort = port + 1;
+            listenerPort = port + 2;
             validFlag = true;
         } catch (Exception e) {
             validFlag = false;
         }
         if(validFlag){
             clearFiles();
-            //login = new ClientThread.Login(ip, port,username);
-
             bg = new ClientThread.BackgroundTasks(localFolder, username, ip, port, this);
-            createChatSpeaker();
+
             listener = new ChatListener(ip, listenerPort, this);
+            speaker = new ChatSpeaker(ip, speakerPort, this);
             listener.start();
-
-
-            //disable login form
-            inputUsername.setDisable(true);
-            inputPath.setDisable(true);
-            inputIP.setDisable(true);
-            inputPort.setDisable(true);
-            inputUsername.setDisable(true);
-            buttonConnect.setDisable(true);
-
+            speaker.start();
             //enable all else
+            centerBox.setDisable(false);
             tableFiles.setDisable(false);
             buttonDisconnect.setDisable(false);
             buttonClear.setDisable(false);
-            buttonShare.setDisable(false);
-            buttonDelete.setDisable(false);
-            buttonUnshare.setDisable(false);
-
             textConsole.setDisable(false);
-            textConsole.setText("Connecting to " + ip + "... ");
+            textConsole.appendText("Connecting to server ("+ip+":"+port+") ... \n");
+            textChat.clear();
 
+        }else{
+            //enable login form
+            inputUsername.setDisable(false);
+            inputPath.setDisable(false);
+            inputIP.setDisable(false);
+            inputPort.setDisable(false);
+            inputUsername.setDisable(false);
+            buttonConnect.setDisable(false);
+            //error dialog
+            dialog("SuperClient - error", "Something went wrong. Check if entered values are correct.");
         }
 
     }
-    public void Disconnect() {
-        //updater.stop();
-        //checker.stop();
-        //login.stop();
+    public void disconnect() {
         bg.stop();
         listener.stop();
-        closeChatSpeaker();
+        speaker.stop();
         buttonConnect.setDisable(false);
         inputUsername.setDisable(false);
         inputPath.setDisable(false);
         inputIP.setDisable(false);
         inputPort.setDisable(false);
         inputUsername.setDisable(false);
-
+        centerBox.setDisable(true);
         tableFiles.setDisable(true);
         buttonDisconnect.setDisable(true);
         buttonClear.setDisable(true);
@@ -247,14 +250,13 @@ public class Controller {
         buttonDelete.setDisable(true);
         buttonUnshare.setDisable(true);
         textConsole.setDisable(true);
-
     }
     public void shutdown(){
         if(bg != null)bg.stop();
         if(listener != null)listener.stop();
-        closeChatSpeaker();
+        if(speaker != null)speaker.stop();
     }
-    public void Share(){
+    public void share(){
         FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
         //file : selected file on list
         Platform.runLater(() -> printText("sharing : " + file));
@@ -262,7 +264,7 @@ public class Controller {
             bg.share(file);
         }
     }
-    public void Unshare(){
+    public void unshare(){
         FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
         //file : selected file on list
         if(file.getOthers().size() > 0){
@@ -273,35 +275,14 @@ public class Controller {
         }
 
     }
-    public void Clear(){
+    public void clear(){
         textConsole.clear();
     }
-    public void printText(String a){
-
+    public synchronized void printText(String a){
         try {
-            Platform.runLater(() -> {
-                textConsole.setText(textConsole.getText() + "\n" + a + "\n");
-                textConsole.setScrollTop(Double.MAX_VALUE);
-            });
+            textConsole.appendText(a + "\n");
         }catch(Exception e){
-            out.println("printText Exception : " + e.getMessage());
-        }
-    }
-    public void setFileStatus(String fname ,boolean status){
-        String newStatus;
-        if(status){
-            newStatus = "on server";
-        }else{
-            newStatus = "ready to upload";
-        }
-        Iterator<FileEntry> i = tableFiles.getItems().iterator();
-        while(i.hasNext()){
-            FileEntry temp = i.next();
-            if(temp.getFilename().matches(fname)){
-                temp.setStatus(newStatus);
-                printText("updated status for: " + fname);
-                break;
-            }
+            System.out.println("printText Exception : " + e.getMessage());
         }
     }
     public void clearFiles(){

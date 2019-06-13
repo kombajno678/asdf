@@ -141,6 +141,12 @@ public class FileEntry implements Serializable {
     @Override
     public boolean equals(Object obj) {
         FileEntry f = (FileEntry)obj;
+        if(this == null && obj != null){
+            return false;
+        }
+        if(this != null && obj == null){
+            return false;
+        }
         if(
             this.filename.matches(f.getFilename()) &&
             this.hddNo == f.getHddNo() &&

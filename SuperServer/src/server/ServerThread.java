@@ -284,13 +284,12 @@ class ServerThread implements Runnable {
             init();
             int previousSize = 0;
             while (loop) {
-                //todo: check files on hdd
+                //maybe todo: check files on hdd
                 //
-                if(s.getFilesList().size() != previousSize || true) {
+                if(s.getFilesList().size() != previousSize) {
                     System.out.print("Global files list{"+s.getFilesList().size()+"} : ");
                     for(FileEntry f : s.getFilesList()){
-                        if(f.getFilename().equals("2137.txt"))
-                            System.out.print(f);
+                        System.out.print(f);
                     }
                     System.out.println();
                     previousSize = s.getFilesList().size();
@@ -604,10 +603,7 @@ class Connection implements Runnable{
                     }else
                     if(temp.matches("delete " + fileNameRegex + " " + userRegex)){
                         //delete file
-                        //todo delete
                         deleteFile(temp);
-                        //delete entry in global file list
-                        //delete file from hdd
                     }else
                     if(temp.matches("share "+fileNameRegex+" "+userRegex+" "+userRegex)){
                         //add new user to others
