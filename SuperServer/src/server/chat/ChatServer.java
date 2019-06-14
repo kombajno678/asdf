@@ -10,7 +10,10 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-class ChatServer implements Runnable{
+/**
+ * main chat server thread
+ */
+public class ChatServer implements Runnable{
     private static int listenerPort;
     private static int speakerPort;
     private Thread t;
@@ -19,8 +22,13 @@ class ChatServer implements Runnable{
     private Controller c;
     private ArrayList<String> msgs;
 
-    public boolean isRunning;
+    boolean isRunning;
 
+    /**
+     *
+     * @param port main server's port, user to create chat's speaker and listener port
+     * @param c reference to gui controller
+     */
     ChatServer(int port, Controller c) {
         this.c = c;
         listenerPort = port + 1;
@@ -43,10 +51,21 @@ class ChatServer implements Runnable{
         }catch(Exception e){}
         System.out.println("ChatServer stopped");
     }
+
+    /**
+     * adds message to list of messages
+     * displays message in gui
+     * @param msg received message
+     */
     public synchronized void receive(String msg){
         msgs.add(msg);
         c.displayMsg(msg);
     }
+
+    /**
+     * basically getter of msgs
+     * @return list of messages
+     */
     public ArrayList<String> send(){
         return msgs;
     }
@@ -63,12 +82,21 @@ class ChatServer implements Runnable{
         speakerThread.stop();
         t.interrupt();
     }
+
+    /**
+     * clears list of messages
+     */
     public void clear(){
         msgs.removeAll(msgs);
     }
 }
 
 //thread with pool listeners
+
+/**
+ * accepts new connections on listener port
+ * (client's speaker connects here)
+ */
 class ThreadPoolListener implements Runnable{
     protected Thread t;
     private boolean flag = true;
@@ -77,8 +105,14 @@ class ThreadPoolListener implements Runnable{
     private ExecutorService pool;
     private ChatServer cm;
 
-    ThreadPoolListener(int ports, int nThreads, ChatServer cm) {
-        this.port = ports;
+    /**
+     *
+     * @param port server's listener port
+     * @param nThreads maximum number of listener threads
+     * @param cm reference to ChatServer thread
+     */
+    ThreadPoolListener(int port, int nThreads, ChatServer cm) {
+        this.port = port;
         this.nThreads = nThreads;
         this.cm = cm;
         //System.out.println("ThreadPoolListener started.");
@@ -98,7 +132,6 @@ class ThreadPoolListener implements Runnable{
                 try {
                     Thread.sleep(10000);
                 } catch (InterruptedException ee) {
-
                 }
             }
         }
@@ -131,6 +164,10 @@ class ThreadPoolListener implements Runnable{
 }
 
 //thread with pool speakers
+/**
+ * accepts new connections on speaker port
+ * (client's listener connects here)
+ */
 class ThreadPoolSpeaker implements Runnable{
     protected Thread t;
     private boolean flag = true;
@@ -139,8 +176,14 @@ class ThreadPoolSpeaker implements Runnable{
     private ExecutorService pool;
     private ChatServer cm;
 
-    ThreadPoolSpeaker(int ports, int nThreads, ChatServer cm) {
-        this.port = ports;
+    /**
+     *
+     * @param port server's listener port
+     * @param nThreads maximum number of listener threads
+     * @param cm reference to ChatServer thread
+     */
+    ThreadPoolSpeaker(int port, int nThreads, ChatServer cm) {
+        this.port = port;
         this.nThreads = nThreads;
         this.cm = cm;
         //System.out.println("ThreadPoolSpeaker started.");
@@ -192,14 +235,21 @@ class ThreadPoolSpeaker implements Runnable{
     }
 }
 
-//ConnectionListener
-//receives msg from client
+
+/**
+ * receives messages from client
+ */
 class ConnectionListener implements Runnable{
     private Thread t;
     private Socket socket;
     private boolean loop = true;
     private ChatServer cm;
 
+    /**
+     *
+     * @param socket listener socket
+     * @param cm reference to ChatServer thread
+     */
     ConnectionListener(Socket socket, ChatServer cm){
         this.socket = socket;
         this.cm = cm;
@@ -252,13 +302,21 @@ class ConnectionListener implements Runnable{
     }
 }
 //ConnectionSpeaker
-//sends msg to client
+
+/**
+ * sends messages to client
+ */
 class ConnectionSpeaker implements Runnable{
     private Thread t;
     private Socket socket;
     private boolean loop = true;
     private PrintWriter out;
     private ChatServer cm;
+    /**
+     *
+     * @param socket listener socket
+     * @param cm reference to ChatServer thread
+     */
     ConnectionSpeaker(Socket socket, ChatServer cm){
         this.socket = socket;
         this.cm = cm;
@@ -280,23 +338,19 @@ class ConnectionSpeaker implements Runnable{
         //System.out.println("ConnectionSpeaker Running "+t.getId());
         while(loop & cm.isRunning){
             //if stream has next line
-            if(cm != null){
-                ArrayList<String> msgs = cm.send();
-                if(n != msgs.size()){
-                    //is new message
-                    if(n > msgs.size()){
-                        //msgs had been cleared
-                        n = 0;
-                    }
-                    for(int i = n; i < msgs.size(); i++){
-                        speak(msgs.get(i));
-                    }
-                    n = msgs.size();
+            ArrayList<String> msgs = cm.send();
+            if(n != msgs.size()){
+                //is new message
+                if(n > msgs.size()){
+                    //list of msgs has been cleared
+                    n = 0;
                 }
+                for(int i = n; i < msgs.size(); i++){
+                    speak(msgs.get(i));
+                }
+                n = msgs.size();
             }
-            else {
-                this.stop();
-            }
+
             try{
                 Thread.sleep(1000);
             }catch(Exception e){
@@ -305,6 +359,11 @@ class ConnectionSpeaker implements Runnable{
         }
         //System.out.println("ConnectionSpeaker stopped "+t.getId());
     }
+
+    /**
+     * sends msg to client
+     * @param msg message to send
+     */
     public void speak(String msg){
         //System.out.println("ConnectionSpeaker SPEAKING "+t.getId());
         try{

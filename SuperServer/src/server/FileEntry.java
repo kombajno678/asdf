@@ -3,17 +3,45 @@ package server;
 import java.io.Serializable;
 import java.util.*;
 
+/**
+ * contains information about file
+ * used in lists of files
+ */
 public class FileEntry implements Serializable {
+    /**
+     * full name of file, example "text_file.txt"
+     */
     private String filename;
+    /**
+     * number of hdd on which file is on server
+     */
     private int hddNo;
+    /**
+     * local path file (will be different on server and client)
+     * for example: "hdd1\adamko\file.txt"
+     */
     private String path;//local folder + owner name + file name
+    /**
+     * username of file owner
+     */
     private String owner;
+    /**
+     * list of users that can download this file (that can't delete or share this file)
+     */
     private ArrayList<String> others;
+    /**
+     * size of file in bytes
+     */
     private long size;
+    /**
+     * where file is, used in client
+     * default value: "server"
+     * for example: "server", "local", "local + server"
+     */
     private String status = "server";
 
     public FileEntry() {}
-    //constructors for client
+
     public FileEntry(String filename, String path, long size, String owner) {
         this.filename = filename;
         this.path = path;
@@ -29,7 +57,7 @@ public class FileEntry implements Serializable {
         this.status = status;
         this.others = new ArrayList<>();
     }
-    //constructors for server
+
     public FileEntry(String filename, int hddNo, String path, long size, String owner) {
         this.filename = filename;
         this.hddNo = hddNo;
@@ -94,14 +122,22 @@ public class FileEntry implements Serializable {
         return ret;
     }
 
-    public String toCsv(){
+    /**
+     * used to write file entry to csv
+     * @return string to be saved in csv file
+     */
+    String toCsv(){
         if(others.size()> 0)
             return filename + "," + size + "," + owner + "," + getOthersString() + "\n";
         else
             return filename + "," + size + "," + owner + "," + "" + "\n";
     }
 
-    public void share(String userToShare){
+    /**
+     * adds new String to Others
+     * @param userToShare user to be added to Others
+     */
+    void share(String userToShare){
         //add userToShare to others
         //check if userToShare already exists in others. don't add then
         for(String u : this.others){
@@ -111,7 +147,12 @@ public class FileEntry implements Serializable {
         }
         this.others.add(userToShare);
     }
-    public void unshare(String userToUnshare){
+
+    /**
+     * removes String from Others
+     * @param userToUnshare user to be removes from Others
+     */
+    void unshare(String userToUnshare){
         //delete userToUnshare from others
         System.out.println("deleting "+userToUnshare+" from: "+others);
         for(Iterator<String> i = this.others.iterator();i.hasNext();){
@@ -124,19 +165,6 @@ public class FileEntry implements Serializable {
         System.out.println("after : "+others);
     }
 
-
-    public boolean equals2(FileEntry f) {
-        if(f == null && this != null || f != null && this == null)return false;
-        if(
-            this.filename.matches(f.getFilename()) &&
-            this.others.equals(f.getOthers()) &&
-            this.status.equals(f.getStatus())
-        ){
-            return true;
-        }else{
-            return false;
-        }
-    }
 
     @Override
     public boolean equals(Object obj) {

@@ -7,6 +7,7 @@ import static java.lang.Math.abs;
 
 public class Sprite
 {
+
     private Image image;
     private double positionX;
     private double positionY;

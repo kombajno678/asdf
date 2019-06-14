@@ -16,11 +16,9 @@ public class ClientMain extends Application {
         Controller controller = loader.getController();
         primaryStage.setTitle("SuperClient");
         Scene scene = new Scene(root, 800, 600);
-        //scene.getStylesheets().add("client.css");
         primaryStage.setScene(scene);
         primaryStage.setOnCloseRequest(e -> {
             e.consume();
-            //if dialogbox true
             Alert alert = new Alert(Alert.AlertType.WARNING, "Do wou want to close client?", ButtonType.YES, ButtonType.NO);
             alert.showAndWait();
             if (alert.getResult() == ButtonType.YES) {

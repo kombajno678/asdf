@@ -1,5 +1,7 @@
 package client;
 
+import client.chat.ChatListener;
+import client.chat.ChatSpeaker;
 import client.game.IntValue;
 import client.game.LongValue;
 import client.game.Sprite;
@@ -37,7 +39,7 @@ public class Controller {
     private static int speakerPort;
     private ChatListener listener;
     private ChatSpeaker speaker;
-    private ClientThread.BackgroundTasks bg = null;
+    private BackgroundTasks bg = null;
 
     public Controller(){}
 
@@ -416,7 +418,7 @@ public class Controller {
      * @param m message to be displayed
      */
     @FXML
-    synchronized void displayMsg(String m){
+    public synchronized void displayMsg(String m){
         textChat.appendText(m+"\n");
     }
 
@@ -447,7 +449,7 @@ public class Controller {
         }
         if(validFlag){
             clearFiles();
-            bg = new ClientThread.BackgroundTasks(localFolder, username, ip, port, this);
+            bg = new BackgroundTasks(localFolder, username, ip, port, this);
 
             listener = new ChatListener(ip, listenerPort, this);
             speaker = new ChatSpeaker(ip, speakerPort, this);
