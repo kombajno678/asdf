@@ -1,4 +1,6 @@
-package client;
+package client.chat;
+import client.Controller;
+
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
@@ -6,7 +8,7 @@ import java.util.Scanner;
 /**
  * Listens for any new chat messages from server and sends them to gui
  */
-class ChatListener implements Runnable{
+public class ChatListener implements Runnable{
     private Thread t;
     private boolean loop;
     private Socket socket;
@@ -20,7 +22,7 @@ class ChatListener implements Runnable{
      * @param port server's chat speaker port
      * @param c reference to gui controller
      */
-    ChatListener(String ip, int port, Controller c) {
+    public ChatListener(String ip, int port, Controller c) {
         this.ip = ip;
         this.port = port;
         this.c = c;

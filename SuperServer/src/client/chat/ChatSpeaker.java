@@ -1,4 +1,6 @@
-package client;
+package client.chat;
+
+import client.Controller;
 
 import java.io.IOException;
 import java.io.PrintWriter;
