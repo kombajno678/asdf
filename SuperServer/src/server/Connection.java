@@ -5,27 +5,54 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * thread of every connection to server on its main port (55555 by default)
  */
-class Connection implements Runnable{
+public class Connection implements Runnable{
+    /**
+     * thread
+     */
     private Thread t;
+    /**
+     * socket
+     */
     private Socket socket;
+    /**
+     * reference to ServerThread thread
+     */
     private ServerThread server;
-
-    private String fileNameRegex = "[\\w-_()'.]+\\.[A-Za-z0-9]+";
-    private String fileSizeRegex = "[\\d]+";
-    private String userRegex = "[\\w-_]+";
-
+    /**
+     * list of paths to hdds
+     */
     private ArrayList<String> hddPaths;
+    /**
+     * reference to hddController
+     */
     private HddController hddController;
 
+    /**
+     * to display message number in console
+     */
     private int msgCounter = 0;
 
+    /**
+     * socket's input stream
+     */
     private InputStream input;
+    /**
+     * Scanner of socket's input stream
+     */
     private Scanner in;
-    private PrintWriter out;
+    /**
+     * socket's output stream
+     */
+    public PrintWriter out;
+    /**
+     * user to separate values in commands from client
+     */
+    private String s = ":";
 
     /**
      *
@@ -44,6 +71,15 @@ class Connection implements Runnable{
             //t.start();
         }
         printMsg("Connection thread started");
+    }
+
+    /**
+     * used for testing
+     * @param server reference to Server thread
+     */
+    public Connection(ServerThread server){
+        hddPaths = server.getHdd();
+        this.server = server;
     }
 
     @Override
@@ -71,6 +107,11 @@ class Connection implements Runnable{
             loop = false;
         }
 
+        //String fileNameRegex = "[\\w-_()'.]+\\.[A-Za-z0-9]+";
+        String fileNameRegex = "[^*&%<>|/\\\\:]+.[A-Za-z0-9]+";
+        String fileSizeRegex = "[\\d]+";
+        String userRegex = "[\\w-_]+";
+
         while (loop) {
             if(socket.isClosed()){
                 break;
@@ -78,35 +119,35 @@ class Connection implements Runnable{
             if(in.hasNextLine()) {
                 String temp = in.nextLine();
                 //printMsg("temp);
-                if(temp.matches("file "+fileNameRegex+" "+fileSizeRegex+" "+userRegex)){
+                if(temp.matches("file"+s+fileNameRegex+s+fileSizeRegex+s+userRegex)){
                     receiveFile(temp);
                     break;
                 }else
-                if(temp.matches("list "+userRegex)){
+                if(temp.matches("list"+s+userRegex)){
                     sendList(temp);
                 }else
-                if(temp.matches("getfile "+fileNameRegex + " " + userRegex + " " + userRegex)){
+                if(temp.matches("getfile"+s+fileNameRegex + s + userRegex + s + userRegex)){
                     //client wants to download a file
                     sendFile(temp);
                     break;
                 }else
-                if(temp.matches("delete " + fileNameRegex + " " + userRegex)){
+                if(temp.matches("delete"+s + fileNameRegex + s + userRegex)){
                     //delete file
                     deleteFile(temp);
                 }else
-                if(temp.matches("share "+fileNameRegex+" "+userRegex+" "+userRegex)){
+                if(temp.matches("share"+s+fileNameRegex+s+userRegex+s+userRegex)){
                     //add new user to others
                     shareFile(temp);
                 }else
-                if(temp.matches("unshare "+fileNameRegex+" "+userRegex+" "+userRegex)){
+                if(temp.matches("unshare"+s+fileNameRegex+s+userRegex+s+userRegex)){
                     //add new user to others
                     unshareFile(temp);
                 }else
-                if(temp.matches("login "+userRegex)){
+                if(temp.matches("login"+s+userRegex)){
                     //user login
                     userLogin(temp);
                 }else
-                if(temp.matches("logout "+userRegex)){
+                if(temp.matches("logout"+s+userRegex)){
                     //user logout
                     userLogout(temp);
                     break;
@@ -149,7 +190,7 @@ class Connection implements Runnable{
      */
     private void receiveFile(String temp){
         //------------------------------------------------------------------user sends file
-        String[] a = temp.split(" ");
+        String[] a = temp.split(s);
         String filename = a[1];
         int filesize = Integer.parseInt(a[2]);
         String username = a[3];
@@ -203,7 +244,9 @@ class Connection implements Runnable{
             System.out.println("Exception in FileReceiverClass : " + e.getMessage());
         }
         printMsg("file "+ filename +" saved");
-
+        try {
+            Thread.sleep(ThreadLocalRandom.current().nextInt(5000, 10000));
+        }catch(Exception e){}
         hddController.endOperation(hddNo-1);
     }
 
@@ -213,7 +256,7 @@ class Connection implements Runnable{
      */
     private void sendList(String temp){
         //----------------------------------------------------------------- user wants list of his files
-        String[] a = temp.split(" ");
+        String[] a = temp.split(s);
         String username = a[1];
         //get list of files user has rights to
         ArrayList<FileEntry> userFilesList = server.getUserFilesList(username);
@@ -236,7 +279,7 @@ class Connection implements Runnable{
      * @param temp client's command, contains file name, file owner, client's username
      */
     private void sendFile(String temp){
-        String[] a = temp.split(" ");
+        String[] a = temp.split(s);
         String filename = a[1];
         String owner = a[2];
         String username = a[3];
@@ -301,6 +344,9 @@ class Connection implements Runnable{
                 // tell user he cant download file
                 out.println(-1);
             }
+            try {
+                Thread.sleep(ThreadLocalRandom.current().nextInt(5000, 10000));
+            }catch(Exception e){}
             hddController.endOperation(fileToSend.getHddNo()-1);
         }else{
             //didn't find file user wants
@@ -313,8 +359,8 @@ class Connection implements Runnable{
      * adds new username to list of users that have right to file
      * @param temp client's command, contains file name, file owner, name of user to whom file will be shared
      */
-    private void shareFile(String temp){
-        String[] a = temp.split(" ");
+    public void shareFile(String temp){
+        String[] a = temp.split(s);
         String filename = a[1];
         String owner = a[2];
         String userToShare = a[3];
@@ -324,11 +370,12 @@ class Connection implements Runnable{
             if(f.getFilename().equals(filename) && f.getOwner().equals(owner)){
                 f.share(userToShare);
                 server.getFilesList().set(i, f);
+                if(server.c != null)server.c.updateFilesForce(server.getFilesList());
                 break;
             }
         }
-        printMsg(temp);
-        server.c.updateFilesForce(server.getFilesList());
+        if(socket != null && t != null)printMsg(temp);
+
 
     }
 
@@ -337,8 +384,8 @@ class Connection implements Runnable{
      * removes username from list of users that have right to file
      * @param temp client's command, contains file name, file owner, name of user that won't have right to file
      */
-    private void unshareFile(String temp){
-        String[] a = temp.split(" ");
+    public void unshareFile(String temp){
+        String[] a = temp.split(s);
         String filename = a[1];
         String owner = a[2];
         String userToUnshare = a[3];
@@ -348,11 +395,12 @@ class Connection implements Runnable{
             if(f.getFilename().equals(filename) && f.getOwner().equals(owner)){
                 f.unshare(userToUnshare);
                 server.getFilesList().set(i, f);
+                if(server.c != null)server.c.updateFilesForce(server.getFilesList());
                 break;
             }
         }
-        printMsg(temp);
-        server.c.updateFilesForce(server.getFilesList());
+        if(socket != null && t != null)printMsg(temp);
+
     }
 
     /**
@@ -360,24 +408,30 @@ class Connection implements Runnable{
      * adds username to online users list
      * @param temp client's command, contains client's username
      */
-    private void userLogin(String temp){
-        String[] a = temp.split(" ");
+    public void userLogin(String temp){
+        String[] a = temp.split(s);
         boolean logFlag = true;
         for(Iterator<String> i = server.getUsersOnline().iterator(); i.hasNext();){
             if(i.next().equals(a[1])){
                 //user is already logged in
                 logFlag = false;
                 break;
+                //return;
             }
         }
-        if(logFlag)
+        if(logFlag){
             server.getUsersOnline().add(a[1]);
-
-        //create folders for user on every drive
-        for(String hdd : hddPaths){
-            new File(hdd + File.separator + File.separator + a[1]).mkdirs();
+            //create folders for user on every drive
+            for(String hdd : hddPaths){
+                new File(hdd + File.separator + File.separator + a[1]).mkdirs();
+            }
+            server.updateUsers();
+            if(socket != null && t != null)printMsg("User " + a[1] + " has logged in");
         }
-        printMsg("User " + a[1] + " has logged in");
+
+
+
+
     }
 
     /**
@@ -385,15 +439,16 @@ class Connection implements Runnable{
      * removes username from online users list
      * @param temp client's command, contains client's username
      */
-    private void userLogout(String temp){
-        String[] a = temp.split(" ");
+    public void userLogout(String temp){
+        String[] a = temp.split(s);
         for(Iterator<String> i = server.getUsersOnline().iterator();i.hasNext();){
             if(i.next().equals(a[1])){
                 i.remove();
                 break;
             }
         }
-        printMsg("User " + a[1] + " has logged out");
+        server.updateUsers();
+        if(socket != null && t != null)printMsg("User " + a[1] + " has logged out");
     }
 
     /**
@@ -430,9 +485,10 @@ class Connection implements Runnable{
     /**
      * deletes file from global files list and from hdd
      * @param temp client's command, contains file name, file owner
+     * @return if file was deleted successfully
      */
-    private void deleteFile(String temp){
-        String[] a = temp.split(" ");
+    public boolean deleteFile(String temp){
+        String[] a = temp.split(s);
         String fileName = a[1];
         String fileOwner = a[2];
         //find this file
@@ -447,14 +503,16 @@ class Connection implements Runnable{
                 if(new File(fileToDelete.getPath()).delete()){
                     //deleted successfully
                     System.out.println("deleted successfully: "+fileToDelete.getFilename());
-                    out.println("deleted");
+                    if(out != null)out.println("deleted");
+                    return true;
                 }else{
                     //didn't delete
                     System.out.println("didn't delete: "+fileToDelete.getFilename());
-                    out.println("not_deleted");
+                    if(out != null)out.println("not_deleted");
+                    return false;
                 }
-                break;
             }
         }
+        return false;
     }
 }

@@ -4,37 +4,54 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * contains information about file
- * used in lists of files
+ * contains information about file,
+ * is used in lists of files
  */
 public class FileEntry implements Serializable {
     /**
      * full name of file, example "text_file.txt"
      */
-    private String filename;
+    private String filename = "";
     /**
      * number of hdd on which file is on server
      */
-    private int hddNo;
+    private int hddNo = 0;
     /**
      * local path file (will be different on server and client)
      * for example: "hdd1\adamko\file.txt"
      */
-    private String path;//local folder + owner name + file name
+    private String path = "";//local folder + owner name + file name
     /**
      * username of file owner
      */
-    private String owner;
+    private String owner = "";
     /**
      * list of users that can download this file (that can't delete or share this file)
      */
-    private ArrayList<String> others;
+    private ArrayList<String> others = new ArrayList<>();
     /**
      * size of file in bytes
      */
-    private long size;
+    private long size = 0;
+
+    public String getSizeString() {
+        if(size < 1024)
+            return size+" B";
+        if(size < 1048576.0)
+            return String.format("%.02f KB", size/1024.0);
+        if(size < 1073741824.0)
+            return String.format("%.02f MB", size/1048576.0);
+        else
+            return String.format("%.02f GB", size/1073741824.0);
+    }
+
+
     /**
-     * where file is, used in client
+     * used to display size in gui
+     */
+    private String sizeString;
+    /**
+     * where file is located, used in client
      * default value: "server"
      * for example: "server", "local", "local + server"
      */
@@ -42,29 +59,12 @@ public class FileEntry implements Serializable {
 
     public FileEntry() {}
 
-    public FileEntry(String filename, String path, long size, String owner) {
-        this.filename = filename;
-        this.path = path;
-        this.size = size;
-        this.owner = owner;
-        this.others = new ArrayList<>();
-    }
-    public FileEntry(String filename, String path, long size, String owner, String status) {
-        this.filename = filename;
-        this.path = path;
-        this.size = size;
-        this.owner = owner;
-        this.status = status;
-        this.others = new ArrayList<>();
-    }
-
     public FileEntry(String filename, int hddNo, String path, long size, String owner) {
         this.filename = filename;
         this.hddNo = hddNo;
         this.path = path;
         this.size = size;
         this.owner = owner;
-        this.others = new ArrayList<>();
     }
     public FileEntry(String filename, int hddNo, String path, long size, String owner, String status) {
         this.filename = filename;
@@ -179,6 +179,7 @@ public class FileEntry implements Serializable {
             this.filename.matches(f.getFilename()) &&
             this.hddNo == f.getHddNo() &&
             this.owner.matches(f.getOwner()) &&
+            this.size == f.size &&
             this.others.size() == f.getOthers().size()
         ){
             //check others

@@ -9,9 +9,22 @@ import java.util.Scanner;
  * receives messages from client
  */
 class ConnectionListener implements Runnable{
+    /**
+     * thread
+     */
     private Thread t;
+    /**
+     * chat's listener socket
+     */
     private Socket socket;
+    /**
+     * used in main thread loop
+     */
     private boolean loop = true;
+    /**
+     * reference to ChatServer
+     * used to send messages to server
+     */
     private ChatServer cm;
 
     /**
@@ -22,17 +35,13 @@ class ConnectionListener implements Runnable{
     ConnectionListener(Socket socket, ChatServer cm){
         this.socket = socket;
         this.cm = cm;
-        //this.start();
         if (t == null) {
             t = new Thread(this, "ConnectionListener_"+socket.getPort());
-            //t.start();
         }
-        //System.out.println("ConnectionSpeaker thread started");
 
     }
     @Override
     public void run() {
-        //System.out.println("ConnectionListener Running "+t.getId());
         InputStream input = null;
         Scanner in = null;
         try{
@@ -49,7 +58,6 @@ class ConnectionListener implements Runnable{
             if(in.hasNextLine()){
                 String msg = in.nextLine();
                 if(msg.equals("!exit")){
-                    //System.out.println("===========================================");
                     this.stop();
                 }else {
                     if(msg.length() <= 50) {
@@ -58,9 +66,7 @@ class ConnectionListener implements Runnable{
                     }
                 }
             }
-
         }
-        //System.out.println("ConnectionListener Stopped "+t.getId());
     }
     public void stop(){
         loop = false;

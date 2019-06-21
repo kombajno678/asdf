@@ -54,7 +54,7 @@ public class Controller {
         centerBox.setDisable(true);
         buttonDisconnect.setDisable(true);
         columnNames.setCellValueFactory(new PropertyValueFactory<>("filename"));
-        columnSize.setCellValueFactory(new PropertyValueFactory<>("size"));
+        columnSize.setCellValueFactory(new PropertyValueFactory<>("sizeString"));
         columnOwner.setCellValueFactory(new PropertyValueFactory<>("owner"));
         columnShared.setCellValueFactory(new PropertyValueFactory<>("others"));
         columnStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
@@ -449,7 +449,8 @@ public class Controller {
         }
         if(validFlag){
             clearFiles();
-            bg = new BackgroundTasks(localFolder, username, ip, port, this);
+            bg = new BackgroundTasks(localFolder, username, ip, port, this, 5);
+            bg.start();
 
             listener = new ChatListener(ip, listenerPort, this);
             speaker = new ChatSpeaker(ip, speakerPort, this);
@@ -584,10 +585,13 @@ public class Controller {
                     if(fnew.getFilename().equals(fold.getFilename()) && fnew.getOwner().equals(fold.getOwner()) ){
                         //same file entry
                         //update info
+                        fold = fnew;
+                        /*
                         fold.setOthers(fnew.getOthers());
                         if(fold.getSize() != fnew.getSize()){
                             fold.setSize(fnew.getSize());
                         }
+                        */
                         //later delete from list4gui
                         found = true;
 

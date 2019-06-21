@@ -9,18 +9,41 @@ import java.util.ArrayList;
  * main chat server thread
  */
 public class ChatServer implements Runnable{
+    /**
+     * chat's listener port
+     */
     private static int listenerPort;
+    /**
+     * chat's speaker port
+     */
     private static int speakerPort;
+    /**
+     * thread
+     */
     private Thread t;
+    /**
+     * listeners thread pool
+     */
     private ThreadPoolListener listenerThread;
+    /**
+     * speakers thread pool
+     */
     private ThreadPoolSpeaker speakerThread;
+    /**
+     * reference to gui controller
+     */
     private Controller c;
+    /**
+     * list of all chat messages
+     */
     private ArrayList<String> msgs;
-
+    /**
+     * tells if chat server is running
+     */
     boolean isRunning;
 
     /**
-     *
+     * public constructor
      * @param port main server's port, user to create chat's speaker and listener port
      * @param c reference to gui controller
      */

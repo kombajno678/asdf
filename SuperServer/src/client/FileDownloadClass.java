@@ -7,14 +7,36 @@ import java.util.Scanner;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * downloads one file
+ * downloads one file from server
  */
 class FileDownloadClass implements Runnable{
+    /**
+     * thread
+     */
     private Thread t;
+    /**
+     * file to download from server
+     */
     private FileEntry file;
+    /**
+     * server's ip
+     */
     private String ip;
+    /**
+     * server's port
+     */
     private int port;
-    private String localFolder, username;
+    /**
+     * path to local folder
+     */
+    private String localFolder;
+    /**
+     * login
+     */
+    private String username;
+    /**
+     * reference to gui controller
+     */
     private Controller c;
 
     /**
@@ -40,13 +62,12 @@ class FileDownloadClass implements Runnable{
         }
     }
     public void run(){
+        String s = ":";
         String filename = file.getFilename();
         String owner = file.getOwner();
         String destination = localFolder + File.separator + File.separator+ owner;
-        //reate folder
+        //create folder
         new File(destination).mkdirs();
-
-
         System.out.println(t.getId() + "\\" +filename + " downloader thread start");
         Socket socketFile = null;
         do{
@@ -70,11 +91,12 @@ class FileDownloadClass implements Runnable{
             System.out.println("IOException: failed to get output stream from server");
         }
         //ask server for this file
-        out.println("getfile " + filename + " " + owner + " " + username);
+        out.println("getfile" + s + filename + s + owner + s + username);
         int filesize = Integer.parseInt(in.nextLine());
         if(filesize < 0){
             //server said that this client cant download this file
             System.out.println(t.getId() + "\\" +filename+ " Can't download "+filesize+"B to "+destination+"");
+            c.printText("file \""+ filename +"\" couldn't be downloaded");
         }else{
             System.out.println(t.getId() + "\\" +filename+ " Downloading "+filesize+"B to "+destination+" ... ");
             c.printText("Downloading "+filename+" ("+filesize+"B) ... ");
@@ -98,8 +120,6 @@ class FileDownloadClass implements Runnable{
                     Thread.sleep(ThreadLocalRandom.current().nextInt(2000, 10000));
                 }catch(Exception e){}
                 out.println("received " + filename);
-
-
 
                 if(socketFile.isClosed()){
                     System.out.println(filename + " socket closed");

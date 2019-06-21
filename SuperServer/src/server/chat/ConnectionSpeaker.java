@@ -1,8 +1,5 @@
 package server.chat;
 
-
-//ConnectionSpeaker
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -12,10 +9,26 @@ import java.util.ArrayList;
  * sends messages to client
  */
 class ConnectionSpeaker implements Runnable{
+    /**
+     * thread
+     */
     private Thread t;
+    /**
+     * chat's speaker socket
+     */
     private Socket socket;
+    /**
+     * user in main thread loop
+     */
     private boolean loop = true;
+    /**
+     * socket's output stream
+     */
     private PrintWriter out;
+    /**
+     * reference to ChatServer
+     * used to check if server is running
+     */
     private ChatServer cm;
     /**
      *
@@ -32,7 +45,6 @@ class ConnectionSpeaker implements Runnable{
 
     @Override
     public void run() {
-        //System.out.println("ConnectionSpeaker Starting "+t.getId());
         out = null;
         try{
             out = new PrintWriter(socket.getOutputStream(), true);
@@ -40,7 +52,6 @@ class ConnectionSpeaker implements Runnable{
             System.out.println("ConnectionSpeaker : IOException: failed to get stream from client");
         }
         int n = 0;
-        //System.out.println("ConnectionSpeaker Running "+t.getId());
         while(loop & cm.isRunning){
             //if stream has next line
             ArrayList<String> msgs = cm.send();
@@ -55,14 +66,12 @@ class ConnectionSpeaker implements Runnable{
                 }
                 n = msgs.size();
             }
-
             try{
                 Thread.sleep(1000);
             }catch(Exception e){
                 break;
             }
         }
-        //System.out.println("ConnectionSpeaker stopped "+t.getId());
     }
 
     /**
@@ -70,7 +79,6 @@ class ConnectionSpeaker implements Runnable{
      * @param msg message to send
      */
     public void speak(String msg){
-        //System.out.println("ConnectionSpeaker SPEAKING "+t.getId());
         try{
             out.println(msg);
         }catch(Exception e){
@@ -79,8 +87,6 @@ class ConnectionSpeaker implements Runnable{
         }
     }
     public void stop(){
-        //System.out.println("ConnectionSpeaker stopping "+t.getId());
-
         loop = false;
         try{
             socket.close();
@@ -89,6 +95,4 @@ class ConnectionSpeaker implements Runnable{
         }
         t.interrupt();
     }
-
-
 }

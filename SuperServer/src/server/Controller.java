@@ -20,13 +20,33 @@ import java.util.List;
  * gui controller
  */
 public class Controller {
-
-    private int port, nThreads;
+    /**
+     * server's port
+     */
+    private int port;
+    /**
+     * maximum number of connections to server
+     */
+    private int nThreads;
+    /**
+     * path to servers local root folder
+     */
     private String path;
-
+    /**
+     * server thread
+     */
     private ServerThread server;
-    private ServerThread.FileListUpdater updater;
+    /**
+     *  updates, creates and saves file lists
+     */
+    private FileListUpdater updater;
+    /**
+     * used to distribute hdd operations evenly
+     */
     private HddController hddController = null;
+    /**
+     * main chat server thread
+     */
     private ChatServer chatServer = null;
 
     //hdd folder names
@@ -41,7 +61,7 @@ public class Controller {
 
     @FXML private void initialize(){
         columnAllNames.setCellValueFactory(new PropertyValueFactory<>("filename"));
-        columnAllSize.setCellValueFactory(new PropertyValueFactory<>("size"));
+        columnAllSize.setCellValueFactory(new PropertyValueFactory<>("sizeString"));
         columnAllOwner.setCellValueFactory(new PropertyValueFactory<>("owner"));
         columnAllOthers.setCellValueFactory(new PropertyValueFactory<>("others"));
 
@@ -52,7 +72,7 @@ public class Controller {
         left.setDisable(true);
         buttonStop.setDisable(true);
 
-        //send button is disabled when no test in msg field is entered
+        //send button is disabled when no text in msg field is entered
         textMsg.textProperty().addListener((observable, oldValue, newValue) ->{
             if(textMsg.getText().length() < 1){
                 buttonSend.setDisable(true);
@@ -98,12 +118,6 @@ public class Controller {
     @FXML private TextField inputPath;
     @FXML private TextField textMsg;
     @FXML private TextArea textChat;
-
-/*
-//didn't work as expected
-    @FXML private List<Label> hddOperations = Arrays.asList(labelHdd1Operations,labelHdd2Operations,
-            labelHdd3Operations,labelHdd4Operations,labelHdd5Operations );
-*/
 
     /**
      * send message to chat server
@@ -171,14 +185,12 @@ public class Controller {
         }
         //add new entries to gui
         tableAll.getItems().addAll(listForGuiAll);
-
-        //don't change, throws exception otherwise
         Platform.runLater(() -> labelAllFiles.setText(tableAll.getItems().size()+" files"));
-        Platform.runLater(() -> labelHdd1Files.setText(numberOfFiles.get(0)+" files"));
-        Platform.runLater(() -> labelHdd2Files.setText(numberOfFiles.get(1)+" files"));
-        Platform.runLater(() -> labelHdd3Files.setText(numberOfFiles.get(2)+" files"));
-        Platform.runLater(() -> labelHdd4Files.setText(numberOfFiles.get(3)+" files"));
-        Platform.runLater(() -> labelHdd5Files.setText(numberOfFiles.get(4)+" files"));
+        Platform.runLater(() -> labelHdd1Files.setText("Files: "+numberOfFiles.get(0)));
+        Platform.runLater(() -> labelHdd2Files.setText("Files: "+numberOfFiles.get(1)));
+        Platform.runLater(() -> labelHdd3Files.setText("Files: "+numberOfFiles.get(2)));
+        Platform.runLater(() -> labelHdd4Files.setText("Files: "+numberOfFiles.get(3)));
+        Platform.runLater(() -> labelHdd5Files.setText("Files: "+numberOfFiles.get(4)));
 
     }
 
@@ -196,14 +208,6 @@ public class Controller {
      * @param hddNumberOfOperations new list of numbers of operations
      */
     @FXML void updateOperations(List<Integer> hddNumberOfOperations){
-
-        /*Platform.runLater(() -> {
-            for (int i = 0; i < hddOperations.size() && i < hddNumberOfOperations.size(); i++) {
-                String text = "" + hddNumberOfOperations.get(i);
-                hddOperations.get(i).setText(text);
-            }
-        });*/
-        // ^ looks good, but didn't work
         int i = 0;
         int sumOfOperations = 0;
         String orang = "-fx-background-color: #8d6b1c;";
@@ -218,7 +222,7 @@ public class Controller {
             boxHdd1.setStyle(green);//green
         else
             boxHdd1.setStyle(gray);//gray
-        Platform.runLater(() -> labelHdd1Operations.setText("operations: " + text1));
+        Platform.runLater(() -> labelHdd1Operations.setText("Operations: " + text1));
         i++;
         String text2 = "" + hddNumberOfOperations.get(i);
         if(hddNumberOfOperations.get(i) > whenOrang)
@@ -227,7 +231,7 @@ public class Controller {
             boxHdd2.setStyle(green);//green
         else
             boxHdd2.setStyle(gray);//gray
-        Platform.runLater(() -> labelHdd2Operations.setText("operations: " + text2));
+        Platform.runLater(() -> labelHdd2Operations.setText("Operations: " + text2));
         i++;
         String text3 = "" + hddNumberOfOperations.get(i);
         if(hddNumberOfOperations.get(i) > whenOrang)
@@ -236,7 +240,7 @@ public class Controller {
             boxHdd3.setStyle(green);//green
         else
             boxHdd3.setStyle(gray);//gray
-        Platform.runLater(() -> labelHdd3Operations.setText("operations: " + text3));
+        Platform.runLater(() -> labelHdd3Operations.setText("Operations: " + text3));
         i++;
         String text4 = "" + hddNumberOfOperations.get(i);
         if(hddNumberOfOperations.get(i) > whenOrang)
@@ -245,7 +249,7 @@ public class Controller {
             boxHdd4.setStyle(green);//green
         else
             boxHdd4.setStyle(gray);//gray
-        Platform.runLater(() -> labelHdd4Operations.setText("operations: " + text4));
+        Platform.runLater(() -> labelHdd4Operations.setText("Operations: " + text4));
         i++;
         String text5 = "" + hddNumberOfOperations.get(i);
         if(hddNumberOfOperations.get(i) > whenOrang)
@@ -254,7 +258,7 @@ public class Controller {
             boxHdd5.setStyle(green);//green
         else
             boxHdd5.setStyle(gray);//gray
-        Platform.runLater(() -> labelHdd5Operations.setText("operations: " + text5));
+        Platform.runLater(() -> labelHdd5Operations.setText("Operations: " + text5));
 
         for(Integer n : hddNumberOfOperations)
             sumOfOperations += n;
@@ -265,7 +269,7 @@ public class Controller {
             boxAll.setStyle(green);//green
         else
             boxAll.setStyle(gray);
-        Platform.runLater(() -> labelAllOperations.setText("operations: " + textAll));
+        Platform.runLater(() -> labelAllOperations.setText("Operations: " + textAll));
 
     }
 
@@ -309,7 +313,7 @@ public class Controller {
             buttonStop.setDisable(false);
             hddController = new HddController(this);
             server = new ServerThread(port, nThreads, path, hdd, hddController, this);
-            updater = new ServerThread.FileListUpdater(hdd, this, server, 10);
+            updater = new FileListUpdater(hdd, this, server, 10);
             chatServer = new ChatServer(port, this);
             chatServer.start();
             updater.start();

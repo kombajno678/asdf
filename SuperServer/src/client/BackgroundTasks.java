@@ -20,22 +20,79 @@ import java.util.regex.Pattern;
  * downloads and uploads files
  * updates files in gui
  */
-class BackgroundTasks implements Runnable{
+public class BackgroundTasks implements Runnable{
+    /**
+     * thread
+     */
     private Thread t;
+    /**
+     * used in main thread loop
+     */
     private boolean loop;
+    /**
+     * list of files stored locally
+     */
     private ArrayList<FileEntry> filesLocal = new ArrayList<>();
+    /**
+     * list of files on server
+     */
     private ArrayList<FileEntry> filesServer = new ArrayList<>();
+    /**
+     * list of files to be displayed in gui
+     */
     private ArrayList<FileEntry> listForGui = new ArrayList<>();
-    private String localFolder, username;
+    /**
+     * local root folder of client
+     */
+    private String localFolder;
+    /**
+     * username of logged in user
+     */
+    private String username;
+    /**
+     * reference to gui controller
+     */
     private Controller c;
+    /**
+     * client's socket
+     */
     private Socket socket;
+    /**
+     * used to send commands to server
+     */
     private PrintWriter out;
+    /**
+     * used to get messages from server
+     */
     private Scanner in;
+    /**
+     * server's ip address
+     */
     private String ip;
+    /**
+     * server's port
+     */
     private int port;
-    private int waitTime = 5;
+    /**
+     * how long to wait before updating files again
+     * synchronization with server will occur every 5*waitTime
+     */
+    public int waitTime = 5;
+    /**
+     * true if client is logged in to server
+     */
     private boolean loggedIn = false;
+    /**
+     * user to separate values in commands to server
+     */
+    private String s = ":";
 
+    public void setFilesLocal(ArrayList<FileEntry> filesLocal) {
+        this.filesLocal = filesLocal;
+    }
+    public void setFilesServer(ArrayList<FileEntry> filesServer) {
+        this.filesServer = filesServer;
+    }
     /**
      *
      * @param localFolder folder in which user folders will be created
@@ -44,17 +101,22 @@ class BackgroundTasks implements Runnable{
      * @param port server's port
      * @param c reference to gui controller
      */
-    BackgroundTasks(String localFolder, String username, String ip, int port, Controller c) {
+    public BackgroundTasks(String localFolder, String username, String ip, int port, Controller c) {
         this.localFolder = localFolder;
         this.username = username;
         this.ip = ip;
         this.port = port;
         this.c = c;
         loop = true;
-        if(t == null){
-            this.t = new Thread(this);
-            t.start();
-        }
+    }
+    public BackgroundTasks(String localFolder, String username, String ip, int port, Controller c, int waitTime) {
+        this.localFolder = localFolder;
+        this.username = username;
+        this.ip = ip;
+        this.port = port;
+        this.c = c;
+        loop = true;
+        this.waitTime = waitTime;
     }
 
     @Override
@@ -102,19 +164,17 @@ class BackgroundTasks implements Runnable{
                     FileEntry fs = i_server.next();
                     if(fs.getFilename().equals(name) && fs.getOwner().equals(owner)){
                         //found local file on filesServerCopy, now update owner and stuff
-
-
-
-                        filesLocal.get(i_local).setOthers(fs.getOthers());
-                        filesLocal.get(i_local).setHddNo(fs.getHddNo());
-                        filesLocal.get(i_local).setStatus("local + server");
+                        FileEntry f = filesLocal.get(i_local);
+                        f.setOthers(fs.getOthers());
+                        f.setHddNo(fs.getHddNo());
+                        f.setStatus("local + server");
+                        filesLocal.set(i_local, f);
                         //delete entry from filesServerCopy
                         i_server.remove();
                         break;
                     }
                 }
             }
-
 
             //create list for gui
             listForGui.clear();
@@ -124,17 +184,14 @@ class BackgroundTasks implements Runnable{
             //send list to gui
             c.updateFiles(listForGui);
 
-            //filesServer = filesServerCopy;
-
             //create list of files to download/upload
             ArrayList<FileEntry> downloadList = getDownloadList();
             ArrayList<FileEntry> uploadList = getUploadList();
 
-            printList(filesLocal, "filesLocal");
-            printList(filesServer, "filesServer");
-            printList(listForGui, "listForGui");
-
             if(n <= 0){
+                printList(filesLocal, "filesLocal");
+                printList(filesServer, "filesServer");
+                printList(listForGui, "listForGui");
                 c.setTextLeft("Syncing with server ... downloading ");
                 n = 5;
                 if(downloadList.size() > 0 && socket != null){
@@ -158,7 +215,15 @@ class BackgroundTasks implements Runnable{
         closeSocket();
         System.out.println("BG thread ended");
     }
-
+    /**
+     * starts thread
+     */
+    public void start(){
+        if(t == null){
+            this.t = new Thread(this);
+            t.start();
+        }
+    }
     /**
      * tries to stop thread
      */
@@ -206,8 +271,7 @@ class BackgroundTasks implements Runnable{
                 Optional<String> result = dialog.showAndWait();
                 result.ifPresent(letter -> {
                     System.out.println("Your choice: " + letter);
-                    out.println("unshare "+f.getFilename() +" "+f.getOwner()+" "+letter);
-                    //c.updateFilesForce(listForGui);
+                    out.println("unshare"+s+f.getFilename() +s+f.getOwner()+s+letter);
                 });
             }else{
                 c.dialog("SuperClient - info", "There's nobody from whom you can unshare this file.");
@@ -243,7 +307,7 @@ class BackgroundTasks implements Runnable{
                 Optional<String> result = dialog.showAndWait();
                 result.ifPresent(letter -> {
                     System.out.println("Your choice: " + letter);
-                    out.println("share "+f.getFilename() +" "+f.getOwner()+" "+letter);
+                    out.println("share"+s+f.getFilename() +s+f.getOwner()+s+letter);
                 });
             }else{
                 c.dialog("SuperClient - info", "There's nobody to share this file to.");
@@ -261,7 +325,7 @@ class BackgroundTasks implements Runnable{
      */
     public void delete(FileEntry f){
         //send delete command to server
-        out.println("delete "+f.getFilename()+" "+f.getOwner());
+        out.println("delete"+s+f.getFilename()+s+f.getOwner());
         //get msg from server, if it deleted file
         String msg = "";
         if(in.hasNextLine()) {
@@ -270,7 +334,6 @@ class BackgroundTasks implements Runnable{
         if(msg.equals("deleted")){
             //delete file from hdd
             if(new File(f.getPath()).delete()){
-                //System.out.println("deleted successfully: "+f.getFilename());
                 c.printText("File: \""+f.getFilename()+"\" has been deleted");
             }else {
                 System.out.println("didn't delete: " + f.getFilename());
@@ -287,7 +350,7 @@ class BackgroundTasks implements Runnable{
      * @param list list to print
      * @param name name of list
      */
-    private void printList(ArrayList<FileEntry> list, String name){
+    public void printList(ArrayList<FileEntry> list, String name){
         System.out.print(name + "{"+list.size()+"} : ");
         for(FileEntry f : list){
             System.out.print(f.getFilename() + ":" +f.getOwner() + ":"+f.getOthers()+"; ");
@@ -334,7 +397,7 @@ class BackgroundTasks implements Runnable{
      */
     private boolean login(){
         try{
-            out.println("login "+username);
+            out.println("login"+s+username);
             return true;
         }catch(Exception e){
             return false;
@@ -345,36 +408,34 @@ class BackgroundTasks implements Runnable{
      * logs out from server
      */
     private void logout(){
-        if(socket != null)out.println("logout "+username);
+        if(socket != null)out.println("logout"+s+username);
     }
 
     /**
      * creates list of files in local folder
      * @return list of file in local filder
      */
-    private ArrayList<FileEntry> getFilesHdd(){
+    public ArrayList<FileEntry> getFilesHdd(){
         ArrayList<FileEntry> filesHdd = new ArrayList<>();
-
         ArrayList<String> listHdd = listFilesForFolder(new File(localFolder));
-        System.out.println("listHdd: " + listHdd);
         for(String fPath : listHdd){
             //if(fPath.contains(csvFileName))continue;//ignore csv file
             File file = new File(fPath);
             if (!file.isFile()) {
                 continue;//file doesn't exist, should't happen though
             }else{
-                //todo: if file contains unsupported characters, change them to _
-                String fileNameRegex = "[\\w-_()'.]+\\.[A-Za-z0-9]+";
+                //if file contains unsupported characters(like space), change them to _
+                String fileNameRegex = "^[^*&%<>|/\\\\:]+.[A-Za-z0-9]+";
                 String newFileName = file.getName();
                 if(!file.getName().matches(fileNameRegex)){
-                    //replace [^\w-_()'.] with _
-                    newFileName = newFileName.replaceAll("[^\\w-_()'.]", "_");
+                    //replace [^*&%<>|/\:] with _
+                    newFileName = newFileName.replaceAll("[^*&%<>|/\\\\:]", "_");
                     //change file name
                     File file2 = new File(localFolder +File.separator+File.separator+ username +File.separator+File.separator+ newFileName);
                     boolean success = file.renameTo(file2);
                     if (!success) {
                         // File was not successfully renamed
-                        c.printText("File : \""+file.getName()+"\" can't be loaded because filename duplicate occurred");
+                        if(c != null)c.printText("File : \""+file.getName()+"\" can't be loaded because filename duplicate occurred");
                         continue;
                     }
                 }
@@ -382,7 +443,6 @@ class BackgroundTasks implements Runnable{
                 //get owner/folder name
                 String pattern = Pattern.quote(System.getProperty("file.separator"));
                 String[] split = fPath.split(pattern);
-                //System.out.println("found file: "+split[split.length-1]+", owner: "+split[split.length-2]);
                 filesHdd.add(new FileEntry(
                         newFileName,
                         0,
@@ -397,16 +457,18 @@ class BackgroundTasks implements Runnable{
 
     /**
      * used in getFilesHdd
-     * lists all files/folders in folder
-     * @param folder folder to scan for files/folders
-     * @return list of all files and folder in folder
+     * lists all files in folder
+     * @param folder folder to scan for files
+     * @return list of all files in folder
      */
     private ArrayList<String> listFilesForFolder(final File folder) {
         ArrayList<String> list = new ArrayList<String>();
         try {
             for (final File fileEntry : folder.listFiles()) {
                 if (fileEntry.isDirectory()) {
-                    list.addAll(listFilesForFolder(fileEntry));
+                    if(folder.getName().equals(localFolder)){
+                        list.addAll(listFilesForFolder(fileEntry));
+                    }
                 } else {
                     list.add(fileEntry.getPath());
                 }
@@ -425,9 +487,9 @@ class BackgroundTasks implements Runnable{
         ArrayList<FileEntry> list = new ArrayList<>();
         if(socket == null)
             return list;
-        out.println("list " + username);
+        out.println("list" + s + username);
         try {
-            ObjectInputStream objectInput = new ObjectInputStream(socket.getInputStream()); //Error Line!
+            ObjectInputStream objectInput = new ObjectInputStream(socket.getInputStream());
             try {
                 Object object = objectInput.readObject();
                 list = (ArrayList<FileEntry>) object;
@@ -441,16 +503,17 @@ class BackgroundTasks implements Runnable{
     }
 
     /**
-     * creates fils of files to download
-     * @return fils tof files to download
+     * creates list of files to download
+     * (server files - local files)
+     * @return list tof files to download
      */
-    private ArrayList<FileEntry> getDownloadList(){
+    public ArrayList<FileEntry> getDownloadList(){
         ArrayList<FileEntry> list = (ArrayList<FileEntry>)filesServer.clone();
         for(Iterator<FileEntry> i = list.iterator();i.hasNext();){
             FileEntry f = i.next();
             for(FileEntry fs : filesLocal){
                 if(fs.getFilename().equals(f.getFilename()) && fs.getOwner().equals(f.getOwner())){
-                    //same filename
+                    //same file
                     i.remove();
                     break;
                 }
@@ -459,17 +522,19 @@ class BackgroundTasks implements Runnable{
         return list;
     }
     /**
-     * creates fils of files to upload
-     * @return fils tof files to upload
+     * creates list of files to upload
+     * (local files - server files)
+     * will ignore somebody else's files
+     * @return list of files to upload
      */
-    private ArrayList<FileEntry> getUploadList(){
+    public ArrayList<FileEntry> getUploadList(){
         ArrayList<FileEntry> list = (ArrayList<FileEntry>)filesLocal.clone();
         //files local - files on server
         //also skip files that you're not the owner of
         for(Iterator<FileEntry> i = list.iterator();i.hasNext();){
             FileEntry f = i.next();
             if(!f.getOwner().equals(username)){
-                //am not owner, no need to upload somebody's files
+                //im not owner, no need to upload somebody's files
                 i.remove();
                 continue;
             }
@@ -552,5 +617,8 @@ class BackgroundTasks implements Runnable{
         System.out.println("upload> uploaded "+n+" file(s)!");
         return n;
     }
+
+
+
 
 }

@@ -17,7 +17,7 @@
    <bottom>
       <HBox spacing="10.0" BorderPane.alignment="CENTER">
          <children>
-            <Label fx:id="textBotLeft" text="(operations?)" />
+            <Label fx:id="textBotLeft" />
             <Region HBox.hgrow="ALWAYS" />
             <Label fx:id="textBotRight" text="Total files:" />
             <Label fx:id="labelFiles" layoutX="554.0" layoutY="15.0" text="0" />
@@ -36,7 +36,7 @@
             <TableView fx:id="tableFiles" prefHeight="253.0" prefWidth="395.0" VBox.vgrow="ALWAYS">
               <columns>
                 <TableColumn fx:id="columnNames" editable="false" prefWidth="119.0" text="Name" />
-                  <TableColumn fx:id="columnSize" editable="false" prefWidth="91.0" text="Size" />
+                  <TableColumn fx:id="columnSize" editable="false" prefWidth="91.0" style="-fx-alignment: CENTER-RIGHT;" text="Size" />
                   <TableColumn fx:id="columnStatus" editable="false" prefWidth="99.0" text="Status" />
                   <TableColumn fx:id="columnOwner" editable="false" prefWidth="93.0" text="Owner" />
                   <TableColumn fx:id="columnShared" editable="false" prefWidth="228.0" text="Shared to" />

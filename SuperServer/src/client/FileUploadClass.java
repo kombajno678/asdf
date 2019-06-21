@@ -13,13 +13,38 @@ import java.util.concurrent.ThreadLocalRandom;
  * uploads one file
  */
 class FileUploadClass implements Runnable{
+    /**
+     * thread
+     */
     public Thread t;
-    FileEntry file;
-    String localFolder, username;
-    String ip;
-    int port;
-    Controller c;
-    BackgroundTasks bg;
+    /**
+     * file to upload
+     */
+    private FileEntry file;
+    /**
+     * path to local folder
+     */
+    private String localFolder;
+    /**
+     * login
+     */
+    private String username;
+    /**
+     * server's ip address
+     */
+    private String ip;
+    /**
+     * server's port
+     */
+    private int port;
+    /**
+     * reference to gui controller
+     */
+    private Controller c;
+    /**
+     * reference to BackgroundTasks thread
+     */
+    private BackgroundTasks bg;
 
     /**
      * @param bg reference to BackgroundTasks thread
@@ -45,6 +70,7 @@ class FileUploadClass implements Runnable{
         }
     }
     public void run(){
+        String s = ":";
         String filename = file.getFilename();
         //String owner = file.getOwner();
         //String destination = localFolder +File.separator + File.separator+ owner;
@@ -67,11 +93,16 @@ class FileUploadClass implements Runnable{
             in = new Scanner(socketFile.getInputStream());
         }catch (IOException e){
             System.out.println(t.getId() + "\\" +"IOException: failed to get output stream from server");
+            try{
+                socketFile.close();
+            }catch(IOException ex){}
+            return;
         }
         long fsize = file.getSize();
         c.printText("Uploading file: " + filename +" ("+ fsize + "B) ...");
-        System.out.println("file " + filename + " " + fsize + " " + username);
-        out.println("file " + filename + " " + fsize + " " + username);
+        System.out.println("file" + s+filename + s + fsize + s + username);
+
+        out.println("file" + s + filename + s + fsize + s + username);
         DataOutputStream dos;
         FileInputStream fis;
         try {

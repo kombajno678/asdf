@@ -1,8 +1,5 @@
 package server.chat;
 
-
-//thread with pool listeners
-
 import java.net.ServerSocket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -12,11 +9,33 @@ import java.util.concurrent.Executors;
  * (client's speaker connects here)
  */
 class ThreadPoolListener implements Runnable{
+    /**
+     * thread
+     */
     protected Thread t;
+    /**
+     * user in main thread loop
+     */
     private boolean flag = true;
-    private int port, nThreads;
+    /**
+     * chat's listener port
+     */
+    private int port;
+    /**
+     * maximum number of threads
+     */
+    private int nThreads;
+    /**
+     * chat's listener socket
+     */
     private ServerSocket socket;
+    /**
+     * chat listeners thread pool
+     */
     private ExecutorService pool;
+    /**
+     * reference to ChatServer
+     */
     private ChatServer cm;
 
     /**
@@ -29,7 +48,6 @@ class ThreadPoolListener implements Runnable{
         this.port = port;
         this.nThreads = nThreads;
         this.cm = cm;
-        //System.out.println("ThreadPoolListener started.");
     }
 
     @Override
@@ -49,7 +67,6 @@ class ThreadPoolListener implements Runnable{
                 }
             }
         }
-        //System.out.println("ThreadPoolListener is running.");
         while (flag) {
             try {
                 pool.execute(new ConnectionListener(socket.accept(), cm));
@@ -58,8 +75,6 @@ class ThreadPoolListener implements Runnable{
                 System.out.println("Failed to add new ConnectionListener");
             }
         }
-        //System.out.println("ThreadPoolListener end");
-
     }
     public void start(){
         if (t == null) {

@@ -33,7 +33,7 @@
             <TableView fx:id="tableAll" prefHeight="456.0" prefWidth="711.0">
                <columns>
                   <TableColumn fx:id="columnAllNames" editable="false" prefWidth="128.0" text="File name" />
-                  <TableColumn fx:id="columnAllSize" editable="false" prefWidth="106.0" text="Size" />
+                  <TableColumn fx:id="columnAllSize" editable="false" prefWidth="106.0" style="-fx-alignment: CENTER-RIGHT;" text="Size" />
                   <TableColumn fx:id="columnAllOwner" editable="false" prefWidth="117.0" text="Owner" />
                   <TableColumn fx:id="columnAllOthers" editable="false" prefWidth="323.0" text="Others" />
                </columns>
