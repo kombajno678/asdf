@@ -11,6 +11,8 @@ import javafx.scene.layout.VBox;
 import server.chat.ChatServer;
 
 import java.io.File;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -297,9 +299,14 @@ public class Controller {
         inputPort.setDisable(true);
         boolean validFlag;
         try {
-            path = inputPath.getText();
+            path = inputPath.getText().trim();
             port = Integer.parseInt(inputPort.getText());
+            if(port < 49152 || port > 65535)throw new Exception();
             nThreads = 100;//default value
+            //check if path is valid
+            if(path.length() == 0)throw new Exception();
+            Paths.get(path);
+
             validFlag = true;
         } catch (Exception e) {
             validFlag = false;

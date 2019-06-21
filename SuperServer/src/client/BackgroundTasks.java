@@ -259,7 +259,11 @@ public class BackgroundTasks implements Runnable{
      * @param f file to unshare
      */
     public void unshare(FileEntry f){
-        System.out.println("file to unshare : "+f);
+        //System.out.println("file to unshare : "+f);
+        if(out == null){
+            c.dialog("SuperClient - info", "You are not connected to server");
+            return;
+        }
         if(f.getOwner().equals(username)){
             //open new window and ask from whom unshare this file
             List<String> choices = f.getOthers();
@@ -289,7 +293,11 @@ public class BackgroundTasks implements Runnable{
      * @param f file to share
      */
     public void share(FileEntry f){
-        System.out.println("file to share : "+f);
+        if(out == null){
+            c.dialog("SuperClient - info", "You are not connected to server");
+            return;
+        }
+        //System.out.println("file to share : "+f);
         if(f.getOwner().equals(username)){
             //open new window and ask to whom share this file
             List<String> choices = getUsersFromServer();
@@ -324,6 +332,10 @@ public class BackgroundTasks implements Runnable{
      * @param f file to delete
      */
     public void delete(FileEntry f){
+        if(out == null){
+            c.dialog("SuperClient - info", "You are not connected to server");
+            return;
+        }
         //send delete command to server
         out.println("delete"+s+f.getFilename()+s+f.getOwner());
         //get msg from server, if it deleted file
@@ -466,7 +478,7 @@ public class BackgroundTasks implements Runnable{
         try {
             for (final File fileEntry : folder.listFiles()) {
                 if (fileEntry.isDirectory()) {
-                    if(folder.getName().equals(localFolder)){
+                    if(folder.getName().equals(localFolder) || folder.getPath().equals(localFolder)){
                         list.addAll(listFilesForFolder(fileEntry));
                     }
                 } else {

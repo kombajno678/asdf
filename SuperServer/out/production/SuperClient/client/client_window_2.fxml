@@ -17,7 +17,7 @@
    <bottom>
       <HBox spacing="10.0" BorderPane.alignment="CENTER">
          <children>
-            <Label fx:id="textBotLeft" text="(operations?)" />
+            <Label fx:id="textBotLeft" />
             <Region HBox.hgrow="ALWAYS" />
             <Label fx:id="textBotRight" text="Total files:" />
             <Label fx:id="labelFiles" layoutX="554.0" layoutY="15.0" text="0" />

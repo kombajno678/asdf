@@ -419,7 +419,11 @@ public class Controller {
      */
     @FXML
     public synchronized void displayMsg(String m){
-        textChat.appendText(m+"\n");
+        try{
+            textChat.appendText(m+"\n");//exception oob
+        }catch(IndexOutOfBoundsException e){
+
+        }
     }
 
     /**
@@ -439,6 +443,10 @@ public class Controller {
         try {
             username = inputUsername.getText();
             localFolder = inputPath.getText();
+
+            //replace \ with \\_
+            //localFolder = localFolder.replaceAll("[\\\\]", "\\\\\\\\");
+
             ip = inputIP.getText();
             port = Integer.parseInt(inputPort.getText());
             speakerPort = port + 1;
@@ -521,7 +529,7 @@ public class Controller {
     public void share(){
         FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
         //file : selected file on list
-        Platform.runLater(() -> printText("sharing : " + file));
+        //Platform.runLater(() -> printText("sharing : " + file));
         if(file.getOwner().equals(username)){
             bg.share(file);
         }
@@ -536,7 +544,7 @@ public class Controller {
         FileEntry file = tableFiles.getItems().get(tableFiles.getFocusModel().getFocusedCell().getRow());
         //file : selected file on list
         if(file.getOthers().size() > 0){
-            Platform.runLater(() -> printText("unsharing : " + file));
+            //Platform.runLater(() -> printText("unsharing : " + file));
             if(file.getOwner().equals(username)){
                 bg.unshare(file);
             }
